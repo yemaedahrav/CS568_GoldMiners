@@ -9,13 +9,13 @@ int main(int argc,const char* argv[]){
     int w1,w2,d1,d2;
     string cur_word;
 
-    // w1 assignment
+    // w1, d1 assignment
     fin1>>cur_word;
     w1=stoi(cur_word);
     fin1>>cur_word;
     d1=stoi(cur_word);
 
-     // w2 assignment
+     // w2, d2 assignment
     fin2>>cur_word;
     w2=stoi(cur_word);
     fin2>>cur_word;

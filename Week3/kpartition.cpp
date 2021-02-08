@@ -4,7 +4,15 @@
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
-//apt install libmlpack-dev mlpack-bin libarmadillo-dev
+
+/* Commands to install requisite packages 
+
+   apt install libmlpack-dev mlpack-bin libarmadillo-dev
+   sudo apt-get install libblas-dev liblapack-dev
+   apt-get install libatlas-base-dev
+*/
+
+// Function to convert string to double
 double process_inp(string a)
 {
     int k = a.size();
@@ -15,6 +23,8 @@ double process_inp(string a)
     double val = stod(a);
     return val;
 }
+
+// checking the threshold
 bool isZero(double a, double threshold = 0.000001)
 {
     if (a > threshold || a < (0 - threshold))
@@ -24,6 +34,11 @@ bool isZero(double a, double threshold = 0.000001)
     else
         return true;
 }
+
+/*
+   checking sparseness of the matrix with the criteria 
+   that sparse matrix 
+*/
 
 bool isSparse(const mat &a)
 {
@@ -42,6 +57,7 @@ bool isSparse(const mat &a)
         return false;
 }
 
+//Normalizing the input values
 mat scale_normalize(mat a,int num_of_words,int num_of_documents,int type)
 {
     if(type==0)
@@ -80,6 +96,8 @@ class base_clustering
     mat a;
     bool fit_complete;
 
+
+    // constructor   
     base_clustering(int num_of_words, int num_of_documents, int num_of_clusters, mat a)
     {
         this->num_of_words = num_of_words;
@@ -88,18 +106,22 @@ class base_clustering
         fit_complete = false;
         this->a = a;
     }
-
+    
+    // Singular Value Documentation
     void SVD(mat& U,vec& s,mat& V,mat& an,int& l_final)
     {
         if (isSparse(an))
         {
             //cout << "sparse";
+
+            // Truncated SVD for sparse matrices
             sp_mat sparse_an(an);
             svds(U, s, V, sparse_an, l_final);
         }
         else
         {
             //cout << "not sparse";
+            // Regular SVD for non sparse matrices
             svd(U, s, V, an);
         }
     }
@@ -115,7 +137,8 @@ public:
     //Constructor
     spectral_coclustering(int num_of_words, int num_of_documents, int num_of_clusters, mat a):
                             base_clustering(num_of_words,num_of_documents,num_of_clusters,a){}
-
+    
+    // The fit method actually computes the SVD and KMeans and finds the clusters
     void fit()
     {
         mat d1(num_of_words, num_of_words, fill::zeros);
@@ -178,7 +201,9 @@ public:
 int main()
 {
     fstream fin("data.in");
-    //word by document
+
+    // word by document matrix A is taken as input from the file
+    
     int w = 0;
     int d = 0;
     int k = 0;
