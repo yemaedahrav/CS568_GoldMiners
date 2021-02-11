@@ -1,0 +1,43 @@
+The matrix U having left singular vectors is:
+[matrix size: 4x2; n_nonzero: 8; density: 100.0%]
+
+     (0, 0)        -0.5769
+     (1, 0)        -0.4079
+     (2, 0)        -0.5783
+     (3, 0)        -0.4079
+     (0, 1)        -0.5753
+     (1, 1)        -0.4122
+     (2, 1)         0.5748
+     (3, 1)         0.4108
+
+
+The matrix V of right singular vectors is
+[matrix size: 4x2; n_nonzero: 8; density: 100.0%]
+
+     (0, 0)        -0.5769
+     (1, 0)        -0.4099
+     (2, 0)        -0.5769
+     (3, 0)        -0.4079
+     (0, 1)        -0.5810
+     (1, 1)        -0.4020
+     (2, 1)         0.5791
+     (3, 1)         0.4068
+
+
+The vector s of singular values is
+   1.0000
+   0.9967
+
+ The matrix z having constructed from U and V and having the l(logk)=1 eigen vectors of the laplacian is:
+[matrix size: 8x1; n_nonzero: 8; density: 100.0%]
+
+     (0, 0)        -0.0407
+     (1, 0)        -0.0412
+     (2, 0)         0.0405
+     (3, 0)         0.0411
+     (4, 0)        -0.0411
+     (5, 0)        -0.0400
+     (6, 0)         0.0409
+     (7, 0)         0.0407
+
+

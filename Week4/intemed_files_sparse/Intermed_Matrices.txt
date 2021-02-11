@@ -1,0 +1,30 @@
+The D1 matrix is:
+[matrix size: 4x4; n_nonzero: 4; density: 25.0%]
+
+     (0, 0)         0.0707
+     (1, 1)         0.1000
+     (2, 2)         0.0705
+     (3, 3)         0.1000
+
+
+The D2 matrix is:
+[matrix size: 4x4; n_nonzero: 4; density: 25.0%]
+
+     (0, 0)         0.0707
+     (1, 1)         0.0995
+     (2, 2)         0.0707
+     (3, 3)         0.1000
+
+
+Normalized matrix An(=D1*A*D2) is:
+[matrix size: 4x4; n_nonzero: 7; density: 43.8%]
+
+     (0, 0)         0.5000
+     (1, 0)         0.7071
+     (0, 1)         0.7036
+     (2, 1)         0.0070
+     (2, 2)         0.4988
+     (3, 2)         0.7071
+     (2, 3)         0.7053
+
+

@@ -1,0 +1,27 @@
+The matrix U having left singular vectors is:
+  -0.5769   0.5753   0.3273  -0.4787
+  -0.4079   0.4122  -0.4643   0.6694
+  -0.5783  -0.5748   0.4750   0.3310
+  -0.4079  -0.4108  -0.6721  -0.4617
+
+The matrix V of right singular vectors is
+  -0.5769   0.5810  -0.3288   0.4707
+  -0.4099   0.4020   0.4666  -0.6728
+  -0.5769  -0.5791  -0.4759  -0.3246
+  -0.4079  -0.4068   0.6691   0.4695
+
+The vector s of singular values is   1.0000
+   0.9967
+   0.5007
+   0.4972
+
+ The matrix z having constructed from U and V and having the l(logk)=1 eigen vectors of the laplacian is:
+   0.0407
+   0.0412
+  -0.0405
+  -0.0411
+   0.0411
+   0.0400
+  -0.0409
+  -0.0407
+
