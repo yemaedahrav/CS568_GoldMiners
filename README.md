@@ -25,14 +25,15 @@ $ ./a.out
 
 ## File Structure
 
+```
 1. Data_Processing_files_and_code
 This contains files like *combine_matrix* , *combine_words* , *2D_to_coordinate* format conversion code files used to preprocess datasets for the algorithm
 	
 2. Test_Datasets
-        * Datasets_2d
+        2.1 Datasets_2d
 	Contains *MED_CISI, MED_CRAN, MED_CISI_CRAN* and the *toy_Dataset* for this week in mxn matrix format.
 	
-	* Datasets_CC
+	2.2 Datasets_CC
 	Contains all previously stated datasets in coordinate format
 	
 3.Intermediate_files_dense
@@ -46,5 +47,5 @@ Updated code
 	
 6.code_with_2D_input_and_dense_matrices*
 Old 2D code
-	
-Note: Kparitition.cpp is the latest updated,fastest running code for now. It is the one on which memory profiling has been done
+```	
+Note: Kparitition.cpp is the latest updated, fastest running code for now. It is the one on which memory profiling has been done
