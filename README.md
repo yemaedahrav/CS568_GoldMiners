@@ -48,4 +48,4 @@ Updated code
 6.code_with_2D_input_and_dense_matrices*
 Old 2D code
 ```	
-Note: Kparitition.cpp is the latest updated, fastest running code for now. It is the one on which memory profiling has been done
+Note: Kparitition.cpp in Week4 is the latest updated, fastest running code for now. It is the one on which memory profiling has been done
