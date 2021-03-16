@@ -389,7 +389,7 @@ int main()
 	Graph G;
 	Batch B;
 	int depth = 2;
-	double t = 0.7;
+	double t = 0;
 	int w, d, k, num_edges;
 	fin >> w >> d >> k >> num_edges;
 
@@ -418,7 +418,7 @@ int main()
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
 
-	Graph G_sub = get_neighbourhood(G, B, depth, t); 
+	Graph G_sub = get_neighbourhood(G, B, d, t); 
 	vector<Graph> G_list = get_connected_components(G_sub);
 	cout << " number of cc: " << G_list.size() << endl;
 	// cout << "The main graph is\n";
@@ -430,19 +430,28 @@ int main()
 	
 
 	//cout << a << endl;
+	for(int i = 1; i < G_list.size(); i++)
+	{
+		for(auto v:G_list[i].get_vlist())
+		{
+			cout << get_char(v.is_doc) << v.num << endl;
+		}
+		
+	}
 	
-
-	for (int i = 0; i < G_list.size(); i++)
+	for (int i = 0; i < 1; i++)
 	{
 		//cout << "Component" << i << endl;
 		//G_list[i].print();
 		sp_mat a = G_list[i].get_word_by_document_matrix();
 		Row<size_t> assignments = cluster_components(a);
-		cout << i << endl;
+		cout << assignments;
 		//cout << assignments;
 	}
 
 	set<Vertex> x = G.get_vlist();
+	
 	fin.close();
+
 	//cout << endl << x.size() << endl;
 }
