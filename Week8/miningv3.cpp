@@ -2,6 +2,7 @@
 #include <mlpack/methods/kmeans/kmeans.hpp>
 #include <sys/types.h>
 #include <unistd.h>
+#include "cluster_components.h"
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
@@ -251,6 +252,7 @@ vector<Graph> get_connected_components(Graph G)
 }
 class Clustering
 {
+	public:
 	set<Vertex> c0;
 	set<Vertex> c1;
 	double cut_12 = 0, weight_1 = 0, weight_2 = 0;
@@ -285,7 +287,7 @@ class Clustering
 		{
 			if (assignments[i] == 0)
 				c0.insert(vertices[i]);
-			else if (assignment[i] == 1)
+			else if (assignments[i] == 1)
 				c1.insert(vertices[i]);
 			else
 				assert(0);
@@ -316,7 +318,7 @@ class Clustering
 				cur_vertex_weight += u.weight;
 				if ((clust1 == 0 && clust2 == 1) || (clust1 == 1 && clust2 == 0))
 				{
-					cut_12 + = u.weight;
+					cut_12 += u.weight;
 				}
 			}
 
@@ -353,10 +355,10 @@ Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int typ
 	set_union(c.c0.begin(), c.c0.end(), to_merge.begin(), to_merge.end(),inserter(x0, x0.begin()));
 	x1 = c.c1;
 
-	y0 = c0;
+	y0 = c.c0;
 	set_union(c.c1.begin(), c.c1.end(), to_merge.begin(), to_merge.end(),inserter(y1,y1.begin()));
 
-	total = set_union(x0.begin(), x0.end(), x1.begin(), x1.end());
+	set_union(x0.begin(), x0.end(), x1.begin(), x1.end(), inserter(total,total.begin()));
 	Clustering candidate1(G.get_subgraph(total), x0, x1);
 	Clustering candidate2(G.get_subgraph(total), y0, y1);
 
@@ -382,27 +384,29 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 
 int main()
 {
+	ifstream fin("input.in"); 
+
 	Graph G;
 	Batch B;
 	int depth = 2;
 	double t = 0.7;
 	int w, d, k, num_edges;
-	cin >> w >> d >> k >> num_edges;
+	fin >> w >> d >> k >> num_edges;
 
 	for (int i = 0; i < num_edges; i++)
 	{
 		int u, v;
 		double weight;
-		cin >> u >> v >> weight;
+		fin >> u >> v >> weight;
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
 
 	int num_ins, num_del, n_edges;
-	cin >> num_ins >> num_del >> n_edges;
+	fin >> num_ins >> num_del >> n_edges;
 	for (int i = 0; i < num_ins; i++)
 	{
 		int u, is_doc;
-		cin >> u >> is_doc;
+		fin >> u >> is_doc;
 		B.add_v(Vertex(u, is_doc));
 	}
 
@@ -410,26 +414,35 @@ int main()
 	{
 		int u, v;
 		double weight;
-		cin >> u >> v >> weight;
+		fin >> u >> v >> weight;
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
 
-	Graph G_sub = get_neighbourhood(G, B, d, t);
+	Graph G_sub = get_neighbourhood(G, B, depth, t); 
 	vector<Graph> G_list = get_connected_components(G_sub);
-	cout << "The main graph is\n";
-	G.print();
-	cout << "The neighbourhood subgraph is\n";
-	G_sub.print();
+	cout << " number of cc: " << G_list.size() << endl;
+	// cout << "The main graph is\n";
+	// G.print();
+	// cout << "The neighbourhood subgraph is\n";
+	// G_sub.print();
+
+	//G_list[0].print();
+	
+
+	//cout << a << endl;
+	
+
 	for (int i = 0; i < G_list.size(); i++)
 	{
-		cout << "Component" << i << endl;
-		G_list[i].print();
+		//cout << "Component" << i << endl;
+		//G_list[i].print();
 		sp_mat a = G_list[i].get_word_by_document_matrix();
 		Row<size_t> assignments = cluster_components(a);
-		cout << assignments;
+		cout << i << endl;
+		//cout << assignments;
 	}
 
 	set<Vertex> x = G.get_vlist();
-	cout << endl
-		 << x.size() << endl;
+	fin.close();
+	//cout << endl << x.size() << endl;
 }

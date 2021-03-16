@@ -2,6 +2,8 @@
 #include <mlpack/methods/kmeans/kmeans.hpp>
 #include <sys/types.h>
 #include <unistd.h>
+#include "cluster_components.h"
+
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
@@ -22,7 +24,7 @@ void start_sw()
 void stop_sw(string a)
 {
     clock_t elapsed_time = clock()-start_time;
-    cout << "Time used by " + a + " " << (1000*elapsed_time)/CLOCKS_PER_SEC << " ms \n";
+    //cout << "Time used by " + a + " " << (1000*elapsed_time)/CLOCKS_PER_SEC << " ms \n";
 }
 void scale_normalize(sp_mat &d,sp_mat &a,int& num_of_words,int& num_of_documents,int type)
 {
@@ -36,6 +38,11 @@ void scale_normalize(sp_mat &d,sp_mat &a,int& num_of_words,int& num_of_documents
 
         for (uword i = 0; i < num_of_words; i++)
         {
+            if(abs(sum[i]) <= 0.00001)
+            {
+                d(i,i) = 10000000;
+                continue;
+            }
             d(i, i) = 1.0 / sqrt(sum[i]);
         }
     }
@@ -49,6 +56,11 @@ void scale_normalize(sp_mat &d,sp_mat &a,int& num_of_words,int& num_of_documents
         }
         for (uword i = 0; i < num_of_documents; i++)
         {
+                if(abs(sum[i]) <= 0.00001)
+                {
+                    d(i,i) = 10000000;
+                    continue;
+                }
                 d(i, i) = 1.0 / sqrt(sum[i]);
         }
     }
@@ -103,8 +115,22 @@ public:
 
         //Number of singular values to find
         int l = ceil(log2(num_of_clusters));
+        cout <<"l : " <<  l << endl;
+        cout << "words : " << num_of_words << endl;
+        cout << "docs : " << num_of_documents << endl;
         int l_final = min(l + 1, min(num_of_words, num_of_documents));
+        if(l_final <= 1)
+        {
+            assignments.resize(num_of_words+num_of_documents);
+            for(int i = 0; i < num_of_words + num_of_documents; i++)
+            {   
+                assignments[i] = 0;
+            }
+            fit_complete = true;
 
+        }
+        else
+        {
         //left and right singular matrices
         sp_mat U, V;
 
@@ -114,7 +140,7 @@ public:
         start_sw();
         SVD(U,s,V,an,l_final);
         stop_sw("svd");
-	    
+	    cout << U << endl;
         sp_mat u1 = d1 * U.cols(1, l_final - 1);
         //cout << u1 << endl;
 
@@ -122,18 +148,19 @@ public:
         //cout << u2 << endl;
 
         sp_mat z1 = join_cols(u1, u2);
-
+        cout << z1 << endl;
         // The assignments will be stored in this vector.
         start_sw();
         KMeans<> k;
         k.Cluster(mat(z1.t()), num_of_clusters, assignments);
         fit_complete = true;
         stop_sw("kmeans");
+        }
     }
 
     void print_assignments()
     {
-        cout<<assignments;
+        //cout<<assignments;
     }
 
     Row<size_t> get_assignments()
@@ -143,7 +170,7 @@ public:
 
     void print()
     {
-        cout << a << endl;
+        //cout << a << endl;
     }
 };
 
@@ -153,7 +180,9 @@ Row<size_t> cluster_components(sp_mat& a)
     int w = a.n_rows;
     int d = a.n_cols;
     int k = 2;
-   
+    
+    //cout << " w d " << w << " " << d << endl;
+    //cout << a << endl;
     spectral_coclustering x(w, d, k, a);
     x.fit();
     Row<size_t> assignments=x.get_assignments();
@@ -173,7 +202,7 @@ Row<size_t> cluster_components(sp_mat& a)
     return 0; */
 }
 
-int main(){
- return 0;
+// int main(){
+//  return 0;
 
-}
+// }
