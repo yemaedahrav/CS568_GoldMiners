@@ -5,7 +5,7 @@
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
-//new change
+
 class Vertex
 {
 public:
@@ -253,7 +253,7 @@ class Clustering
 {
 	set<Vertex> c0;
 	set<Vertex> c1;
-	double cut_12, weight_1, weight_2;
+	double cut_12 = 0, weight_1 = 0, weight_2 = 0;
 	double normalized_cut;
 	Graph G;
 
@@ -350,11 +350,11 @@ Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int typ
 		to_merge = d.c1;
 	}
 
-	x0 = set_union(c.c0.begin(), c.c0.end(), to_merge.begin(), to_merge.end());
+	set_union(c.c0.begin(), c.c0.end(), to_merge.begin(), to_merge.end(),inserter(x0, x0.begin()));
 	x1 = c.c1;
 
 	y0 = c0;
-	y1 = set_union(c.c1.begin(), c.c1.end(), to_merge.begin(), to_merge.end());
+	set_union(c.c1.begin(), c.c1.end(), to_merge.begin(), to_merge.end(),inserter(y1,y1.begin()));
 
 	total = set_union(x0.begin(), x0.end(), x1.begin(), x1.end());
 	Clustering candidate1(G.get_subgraph(total), x0, x1);
@@ -379,7 +379,6 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 	Clustering final = merge_Clustering_Cluster(G, c_prime, d, 1);
 	return final;
 }
-
 
 int main()
 {
