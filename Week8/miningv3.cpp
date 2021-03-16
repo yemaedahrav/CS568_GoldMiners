@@ -5,7 +5,7 @@
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
-
+//new change
 class Vertex
 {
 public:
@@ -253,7 +253,7 @@ class Clustering
 {
 	set<Vertex> c0;
 	set<Vertex> c1;
-	double cut_12 = 0, weight_1 = 0, weight_2 = 0;
+	double cut_12, weight_1, weight_2;
 	double normalized_cut;
 	Graph G;
 
@@ -379,6 +379,7 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 	Clustering final = merge_Clustering_Cluster(G, c_prime, d, 1);
 	return final;
 }
+
 
 int main()
 {
