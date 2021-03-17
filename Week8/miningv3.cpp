@@ -120,22 +120,26 @@ public:
 		vlist.insert(v);
 	}
 
+	void add_vertex(Vertex u){
+		vlist.insert(u);
+	}
+
 	sp_mat get_word_by_document_matrix()
 	{
 		int w = 0, d = 0;
-		map<int, int> new_index;
+		map<Vertex, int> new_index;
 		vector<Vertex> words, documents;
 		for (auto v : vlist)
 		{
 			if (v.is_doc)
 			{
-				new_index.insert({v.num, d});
+				new_index.insert({v, d});
 				d++;
 				documents.push_back(v);
 			}
 			else
 			{
-				new_index.insert({v.num, w});
+				new_index.insert({v, w});
 				w++;
 				words.push_back(v);
 			}
@@ -148,9 +152,9 @@ public:
 			vector<Edge> vert_list = pr.second;
 			if (vert.is_doc)
 				continue;
-			for (auto u : vert_list)
+			for (auto e : vert_list)
 			{
-				word_by_doc(new_index[vert.num], new_index[u.v.num]) = u.weight;
+				word_by_doc(new_index[vert], new_index[e.v]) = e.weight;
 			}
 		}
 
@@ -199,7 +203,6 @@ void dfs(Vertex &u, map<Vertex, vector<Edge>> &adj_list, int &c_num, map<Vertex,
 // get_neighbourhood basically uses a multi-source bfs;
 Graph get_neighbourhood(Graph G, Batch B, int d, double threshold)
 {
-	Graph G_sub;
 	map<Vertex, vector<Edge>> adj_list = G.get_adj_list();
 	vector<Vertex> ins_vertices = B.get_ins_vertices();
 	queue<Vertex> q;
@@ -295,10 +298,48 @@ public:
 		this->G = G;
 	}
 
+	void remove(set<Vertex> vset){
+		for(auto u:vset){
+			if(c0.count(u))
+				c0.erase(u);
+			else if(c1.count(u))
+				c1.erase(u);
+		}
+	}
+
 	int num_of_vertices()
 	{
 		return (int)(c0.size() + c1.size());
 	}
+
+	void print2(){
+		cout<<"The documents in cluster 1 are\n";
+		for(auto x:c0)
+			if(x.is_doc)
+				cout<<x.num<<" ";
+		cout<<endl;
+		cout<<"The documents in cluster 2 are\n";
+		for(auto x:c1)
+			if(x.is_doc)
+				cout<<x.num<<" ";
+		cout<<endl;
+
+	}
+
+	// can make mistakes if true labels and assignments are exact opposite
+	bool match_label(Vertex u,int label){
+		if(label==1)
+			if(c0.count(u))
+				return true;
+			else
+				return false;
+		else
+			if(c1.count(u))
+				return true;
+			else
+				return false;
+	}
+
 	void compute_nCut()
 	{
 		auto sub_adj_list = G.get_adj_list();
@@ -328,14 +369,14 @@ public:
 				}
 			}
 			//Checking if weights are zero.
-			if (abs(weight_0) <= 0.0000001 || abs(weight_1) <= 0.0000001)
-			{
-				cout << "Normalized_cut weight = 0 " << endl;
-				weight_0 = (abs(weight_0) <= 0.0000001) ? 0.0000001 : weight_0;
-				weight_1 = (abs(weight_1) <= 0.0000001) ? 0.0000001 : weight_1;
-			}
-			normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 		}
+		if (abs(weight_0) <= 0.0000001 || abs(weight_1) <= 0.0000001)
+		{
+			cout << "Normalized_cut weight = 0 " << endl;
+			weight_0 = (abs(weight_0) <= 0.0000001) ? 0.0000001 : weight_0;
+			weight_1 = (abs(weight_1) <= 0.0000001) ? 0.0000001 : weight_1;
+		}
+		normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 	}
 
 	void print()
@@ -393,14 +434,12 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 int main()
 {
 	ifstream fin("input.in");
-
+	int n_batches=3;
 	Graph G;
-	Batch B;
 	int depth = 1;
 	double t = 0;
 	int w, d, k, num_edges;
 	fin >> w >> d >> k >> num_edges;
-
 	for (int i = 0; i < num_edges; i++)
 	{
 		int u, v;
@@ -408,88 +447,73 @@ int main()
 		fin >> u >> v >> weight;
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
-
-	int num_ins, num_del, n_edges;
-	fin >> num_ins >> num_del >> n_edges;
-	for (int i = 0; i < num_ins; i++)
-	{
-		int u, is_doc;
-		fin >> u >> is_doc;
-		B.add_v(Vertex(u, is_doc));
-	}
-
-	for (int i = 0; i < n_edges; i++)
-	{
-		int u, v;
-		double weight;
-		fin >> u >> v >> weight;
-		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
-	}
-
-	Graph G_sub = get_neighbourhood(G, B, depth, t);
-	vector<Graph> G_list = get_connected_components(G_sub);
-	cout << " number of cc: " << G_list.size() << endl;
-	// cout << "The main graph is\n";
-	// G.print();
-	// cout << "The neighbourhood subgraph is\n";
-	// G_sub.print();
-
-	//G_list[0].print();
-
-	//cout << a << endl;
-	// for (int i = 1; i < G_list.size(); i++)
-	// {
-	// 	for (auto v : G_list[i].get_vlist())
-	// 	{
-	// 		cout << get_char(v.is_doc) << v.num << endl;
-	// 	}
-	// }
-
-	// for (int i = 0; i < 2; i++)
-	// {
-	// 	//cout << "Component" << i << endl;
-	// 	//G_list[i].print();
-	// 	sp_mat a = G_list[i].get_word_by_document_matrix();
-	// 	vector <Vertex> order = G_list[i].get_order();
-	// 	Row<size_t> assignments = cluster_components(a);
-	// 	//cout << assignments;
-	// 	Clustering x0(G_list[i],order,assignments);
-	// 	x0.compute_nCut();
-	// 	cout << "NC : " << x0.normalized_cut << endl
-	// 		 << "W0 : " << x0.weight_0       << endl
-	// 		 << "W1 : " << x0.weight_1       << endl
-	// 		 << "C01: " << x0.cut_01         << endl;
-	// 	//cout << assignments;
-	// }
-
-	sp_mat a = G_list[0].get_word_by_document_matrix();
-	vector <Vertex> order = G_list[0].get_order();
-	Row<size_t> assignments = cluster_components(a);
-	//cout << assignments;
-	Clustering x0(G_list[0],order,assignments);
+	cout<<"Initial Graph input done"<<endl;
+	cout<<"size of initial graph is "<<G.get_vlist().size()<<endl;
+	//exit(0);
 	
-	sp_mat b = G_list[1].get_word_by_document_matrix();
-	vector <Vertex> order1 = G_list[1].get_order();
-	Row<size_t> assignments1 = cluster_components(b);
-	//cout << assignments;
-	Clustering x1(G_list[1],order1,assignments1);
+	sp_mat a = G.get_word_by_document_matrix();
+	vector <Vertex> order = G.get_order();
+	Row<size_t> assignments = cluster_components(a);
+	Clustering C(G,order,assignments);
+	cout<<"Clustering of initial Graph Done"<<endl;
 
-	set <Vertex> merged;
-	for(auto V: x0.c0) merged.insert(V);
-	for(auto V: x0.c1) merged.insert(V);
-	for(auto V: x1.c0) merged.insert(V);
-	for(auto V: x1.c1) merged.insert(V);
-	cout << "x0 size: " << x0.num_of_vertices() << endl;	
-	cout << "x1 size: " << x1.num_of_vertices() << endl;
+	for(int b_num=0;b_num<n_batches;b_num++){
+		int num_ins, num_del, n_edges;
+		Batch B;
+		fin >> num_ins >> num_del >> n_edges;
+		for (int i = 0; i < num_ins; i++)
+		{
+			int u, is_doc;
+			fin >> u >> is_doc;
+			B.add_v(Vertex(u, is_doc));
+		}
 
-	Graph merged_graph = G.get_subgraph(merged);
+		for (int i = 0; i < n_edges; i++)
+		{
+			int u, v;
+			double weight;
+			fin >> u >> v >> weight;
+			G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
+		}
 
-	Clustering new_clustering = merge_Clustering(merged_graph,x0,x1);
-	cout << "merged size: " << new_clustering.num_of_vertices() << endl;
+		cout<<"Graph size after batch "<< b_num+1<<":"<<G.get_vlist().size()<<endl;
 
-	new_clustering.compute_nCut();
-	new_clustering.print();
+		Graph G_sub = get_neighbourhood(G, B, depth, t);
+		C.remove(G_sub.get_vlist());	// remove all vertexes found in neighbourhood , so that merging of new clusterings can be done later with this C clustering 
+		vector<Graph> G_list = get_connected_components(G_sub);
+		//cout << " number of cc: " << G_list.size() << endl;
+
+		for (int i = 0; i < G_list.size(); i++)
+		{
+	 		cout << "Component" << i << endl;
+			sp_mat b = G_list[i].get_word_by_document_matrix();
+			vector <Vertex> order1 = G_list[i].get_order();
+			Row<size_t> assignments1 = cluster_components(b);
+			Clustering D(G_list[i],order1,assignments1);
+			C = merge_Clustering(G,C,D);
+		}
+		cout << "merged size after "<< b_num+1 <<" batch:"<< C.num_of_vertices() << endl;
+		//C.compute_nCut();
+		//C.print();
+	}
+	C.print2();
 	fin.close();
-
-	//cout << endl << x.size() << endl;
+	exit(0);
+	// Testing whether correct output is produced
+	vector<int> true_labels;
+	ifstream fin1;
+	fin1.open("labels.in");
+	int mis_classifications=0;
+	cout<<"The documents misclassified are\n";
+	for(int i=0;i<d+300;i++){
+		int cur_label;
+		fin1>>cur_label;
+		if(!C.match_label(Vertex(i,true),cur_label)){
+			cout<<"d"<<i<<endl;
+			mis_classifications++;
+		}
+		
+	}
+	cout<<"Total missclassified"<<mis_classifications;
+	fin1.close();	
 }
