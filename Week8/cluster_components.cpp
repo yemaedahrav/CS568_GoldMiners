@@ -140,7 +140,7 @@ public:
         start_sw();
         SVD(U,s,V,an,l_final);
         stop_sw("svd");
-	    cout << U << endl;
+	    //cout << U << endl;
         sp_mat u1 = d1 * U.cols(1, l_final - 1);
         //cout << u1 << endl;
 
@@ -148,7 +148,7 @@ public:
         //cout << u2 << endl;
 
         sp_mat z1 = join_cols(u1, u2);
-        cout << z1 << endl;
+        //cout << z1 << endl;
         // The assignments will be stored in this vector.
         start_sw();
         KMeans<> k;

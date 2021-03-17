@@ -74,7 +74,10 @@ public:
 	{
 		return vlist;
 	}
-
+	vector<Vertex> get_order()
+	{
+		return order;
+	}
 	int num_vertex()
 	{
 		return vlist.size();
@@ -260,7 +263,7 @@ public:
 	Graph G;
 
 	// Normalized cut value, weight of cut 0, weight of cut 1
-	Clustering(Graph G, vector<Vertex> vertices, vector<size_t> assignments)
+	Clustering(Graph G, vector<Vertex> vertices, Row<size_t> assignments)
 	{
 		this->G = G;
 		for (int i = 0; i < vertices.size(); i++)
@@ -273,7 +276,7 @@ public:
 				assert(0);
 		}
 	}
-	Clustering(vector<Vertex> vertices, vector<size_t> assignments)
+	Clustering(vector<Vertex> vertices, Row<size_t> assignments)
 	{
 		for (int i = 0; i < vertices.size(); i++)
 		{
@@ -292,6 +295,10 @@ public:
 		this->G = G;
 	}
 
+	int num_of_vertices()
+	{
+		return (int)(c0.size() + c1.size());
+	}
 	void compute_nCut()
 	{
 		auto sub_adj_list = G.get_adj_list();
@@ -329,6 +336,14 @@ public:
 			}
 			normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 		}
+	}
+
+	void print()
+	{
+		cout << "NC : " << normalized_cut << endl
+			 << "W0 : " << weight_0       << endl
+			 << "W1 : " << weight_1       << endl
+			 << "C01: " << cut_01         << endl;
 	}
 };
 
@@ -381,7 +396,7 @@ int main()
 
 	Graph G;
 	Batch B;
-	int depth = 2;
+	int depth = 1;
 	double t = 0;
 	int w, d, k, num_edges;
 	fin >> w >> d >> k >> num_edges;
@@ -411,7 +426,7 @@ int main()
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
 
-	Graph G_sub = get_neighbourhood(G, B, d, t);
+	Graph G_sub = get_neighbourhood(G, B, depth, t);
 	vector<Graph> G_list = get_connected_components(G_sub);
 	cout << " number of cc: " << G_list.size() << endl;
 	// cout << "The main graph is\n";
@@ -422,26 +437,58 @@ int main()
 	//G_list[0].print();
 
 	//cout << a << endl;
-	for (int i = 1; i < G_list.size(); i++)
-	{
-		for (auto v : G_list[i].get_vlist())
-		{
-			cout << get_char(v.is_doc) << v.num << endl;
-		}
-	}
+	// for (int i = 1; i < G_list.size(); i++)
+	// {
+	// 	for (auto v : G_list[i].get_vlist())
+	// 	{
+	// 		cout << get_char(v.is_doc) << v.num << endl;
+	// 	}
+	// }
 
-	for (int i = 0; i < 1; i++)
-	{
-		//cout << "Component" << i << endl;
-		//G_list[i].print();
-		sp_mat a = G_list[i].get_word_by_document_matrix();
-		Row<size_t> assignments = cluster_components(a);
-		cout << assignments;
-		//cout << assignments;
-	}
+	// for (int i = 0; i < 2; i++)
+	// {
+	// 	//cout << "Component" << i << endl;
+	// 	//G_list[i].print();
+	// 	sp_mat a = G_list[i].get_word_by_document_matrix();
+	// 	vector <Vertex> order = G_list[i].get_order();
+	// 	Row<size_t> assignments = cluster_components(a);
+	// 	//cout << assignments;
+	// 	Clustering x0(G_list[i],order,assignments);
+	// 	x0.compute_nCut();
+	// 	cout << "NC : " << x0.normalized_cut << endl
+	// 		 << "W0 : " << x0.weight_0       << endl
+	// 		 << "W1 : " << x0.weight_1       << endl
+	// 		 << "C01: " << x0.cut_01         << endl;
+	// 	//cout << assignments;
+	// }
 
-	set<Vertex> x = G.get_vlist();
+	sp_mat a = G_list[0].get_word_by_document_matrix();
+	vector <Vertex> order = G_list[0].get_order();
+	Row<size_t> assignments = cluster_components(a);
+	//cout << assignments;
+	Clustering x0(G_list[0],order,assignments);
+	
+	sp_mat b = G_list[1].get_word_by_document_matrix();
+	vector <Vertex> order1 = G_list[1].get_order();
+	Row<size_t> assignments1 = cluster_components(b);
+	//cout << assignments;
+	Clustering x1(G_list[1],order1,assignments1);
 
+	set <Vertex> merged;
+	for(auto V: x0.c0) merged.insert(V);
+	for(auto V: x0.c1) merged.insert(V);
+	for(auto V: x1.c0) merged.insert(V);
+	for(auto V: x1.c1) merged.insert(V);
+	cout << "x0 size: " << x0.num_of_vertices() << endl;	
+	cout << "x1 size: " << x1.num_of_vertices() << endl;
+
+	Graph merged_graph = G.get_subgraph(merged);
+
+	Clustering new_clustering = merge_Clustering(merged_graph,x0,x1);
+	cout << "merged size: " << new_clustering.num_of_vertices() << endl;
+
+	new_clustering.compute_nCut();
+	new_clustering.print();
 	fin.close();
 
 	//cout << endl << x.size() << endl;
