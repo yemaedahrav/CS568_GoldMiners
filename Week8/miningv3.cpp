@@ -252,20 +252,16 @@ vector<Graph> get_connected_components(Graph G)
 }
 class Clustering
 {
-	public:
+public:
 	set<Vertex> c0;
 	set<Vertex> c1;
-	double cut_12 = 0, weight_1 = 0, weight_2 = 0;
+	double cut_01 = 0, weight_0 = 0, weight_1 = 0;
 	double normalized_cut;
 	Graph G;
 
 	// Normalized cut value, weight of cut 0, weight of cut 1
 	Clustering(Graph G, vector<Vertex> vertices, vector<size_t> assignments)
 	{
-		cut_12 = 0;
-		weight_1 = 0;
-		weight_2 = 0;
-		normalized_cut = 0;
 		this->G = G;
 		for (int i = 0; i < vertices.size(); i++)
 		{
@@ -279,10 +275,6 @@ class Clustering
 	}
 	Clustering(vector<Vertex> vertices, vector<size_t> assignments)
 	{
-		cut_12 = 0;
-		weight_1 = 0;
-		weight_2 = 0;
-		normalized_cut = 0;
 		for (int i = 0; i < vertices.size(); i++)
 		{
 			if (assignments[i] == 0)
@@ -295,10 +287,6 @@ class Clustering
 	}
 	Clustering(Graph G, set<Vertex> c0, set<Vertex> c1)
 	{
-		cut_12 = 0;
-		weight_1 = 0;
-		weight_2 = 0;
-		normalized_cut = 0;
 		this->c0 = c0;
 		this->c1 = c1;
 		this->G = G;
@@ -306,36 +294,41 @@ class Clustering
 
 	void compute_nCut()
 	{
-		map<Vertex, vector<Edge>> adj_list = G.get_adj_list();
-		set<Vertex> vlist = G.get_vlist();
-		for (auto v : vlist)
+		auto sub_adj_list = G.get_adj_list();
+		normalized_cut = weight_0 = weight_1 = cut_01 = 0;
+		for (auto u : sub_adj_list)
 		{
-			int clust1 = v.cluster;
-			double cur_vertex_weight = 0;
-			for (auto u : adj_list[v])
+			for (auto v : u.second)
 			{
-				int clust2 = u.v.cluster;
-				cur_vertex_weight += u.weight;
-				if ((clust1 == 0 && clust2 == 1) || (clust1 == 1 && clust2 == 0))
+				auto n0 = u.first;
+				auto n1 = v.v;
+
+				if( ! (c0.count(n0) || c1.count(n0)) ) assert(0);
+				if( ! (c0.count(n1) || c1.count(n1)) ) assert(0);
+
+
+				if(c0.count(n0) && c0.count(n1))
 				{
-					cut_12 += u.weight;
+					weight_0 += v.weight;
+				}
+				else if(c1.count(n0) && c1.count(n1))
+				{
+					weight_1 += v.weight;
+				}
+				else
+				{
+					cut_01 += v.weight;
 				}
 			}
-
-			v.weight = cur_vertex_weight;
-
-			// Cluster label 0 for cluster 1 and 1 for cluster 2
-			if (v.cluster)
+			//Checking if weights are zero.
+			if (abs(weight_0) <= 0.0000001 || abs(weight_1) <= 0.0000001)
 			{
-				weight_2 += v.weight;
+				cout << "Normalized_cut weight = 0 " << endl;
+				weight_0 = (abs(weight_0) <= 0.0000001) ? 0.0000001 : weight_0;
+				weight_1 = (abs(weight_1) <= 0.0000001) ? 0.0000001 : weight_1;
 			}
-			else
-			{
-				weight_1 += v.weight;
-			}
+			normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 		}
-
-		normalized_cut = cut_12 * (1 / weight_1 + 1 / weight_2);
 	}
 };
 
@@ -352,13 +345,13 @@ Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int typ
 		to_merge = d.c1;
 	}
 
-	set_union(c.c0.begin(), c.c0.end(), to_merge.begin(), to_merge.end(),inserter(x0, x0.begin()));
+	set_union(c.c0.begin(), c.c0.end(), to_merge.begin(), to_merge.end(), inserter(x0, x0.begin()));
 	x1 = c.c1;
 
 	y0 = c.c0;
-	set_union(c.c1.begin(), c.c1.end(), to_merge.begin(), to_merge.end(),inserter(y1,y1.begin()));
+	set_union(c.c1.begin(), c.c1.end(), to_merge.begin(), to_merge.end(), inserter(y1, y1.begin()));
 
-	set_union(x0.begin(), x0.end(), x1.begin(), x1.end(), inserter(total,total.begin()));
+	set_union(x0.begin(), x0.end(), x1.begin(), x1.end(), inserter(total, total.begin()));
 	Clustering candidate1(G.get_subgraph(total), x0, x1);
 	Clustering candidate2(G.get_subgraph(total), y0, y1);
 
@@ -384,7 +377,7 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 
 int main()
 {
-	ifstream fin("input.in"); 
+	ifstream fin("input.in");
 
 	Graph G;
 	Batch B;
@@ -418,7 +411,7 @@ int main()
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
 
-	Graph G_sub = get_neighbourhood(G, B, d, t); 
+	Graph G_sub = get_neighbourhood(G, B, d, t);
 	vector<Graph> G_list = get_connected_components(G_sub);
 	cout << " number of cc: " << G_list.size() << endl;
 	// cout << "The main graph is\n";
@@ -427,18 +420,16 @@ int main()
 	// G_sub.print();
 
 	//G_list[0].print();
-	
 
 	//cout << a << endl;
-	for(int i = 1; i < G_list.size(); i++)
+	for (int i = 1; i < G_list.size(); i++)
 	{
-		for(auto v:G_list[i].get_vlist())
+		for (auto v : G_list[i].get_vlist())
 		{
 			cout << get_char(v.is_doc) << v.num << endl;
 		}
-		
 	}
-	
+
 	for (int i = 0; i < 1; i++)
 	{
 		//cout << "Component" << i << endl;
@@ -450,7 +441,7 @@ int main()
 	}
 
 	set<Vertex> x = G.get_vlist();
-	
+
 	fin.close();
 
 	//cout << endl << x.size() << endl;
