@@ -414,7 +414,7 @@ Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int typ
 	candidate1.compute_nCut();
 	candidate2.compute_nCut();
 
-	if (candidate1.normalized_cut >= candidate2.normalized_cut)
+	if (candidate1.normalized_cut <= candidate2.normalized_cut)
 	{
 		return candidate1;
 	}
