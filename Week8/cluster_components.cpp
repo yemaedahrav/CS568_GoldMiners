@@ -115,9 +115,9 @@ public:
 
         //Number of singular values to find
         int l = ceil(log2(num_of_clusters));
-        cout <<"l : " <<  l << endl;
-        cout << "words : " << num_of_words << endl;
-        cout << "docs : " << num_of_documents << endl;
+        // cout <<"l : " <<  l << endl;
+        // cout << "words : " << num_of_words << endl;
+        // cout << "docs : " << num_of_documents << endl;
         int l_final = min(l + 1, min(num_of_words, num_of_documents));
         if(l_final <= 1)
         {

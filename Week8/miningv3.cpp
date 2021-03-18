@@ -120,7 +120,8 @@ public:
 		vlist.insert(v);
 	}
 
-	void add_vertex(Vertex u){
+	void add_vertex(Vertex u)
+	{
 		vlist.insert(u);
 	}
 
@@ -298,11 +299,13 @@ public:
 		this->G = G;
 	}
 
-	void remove(set<Vertex> vset){
-		for(auto u:vset){
-			if(c0.count(u))
+	void remove(set<Vertex> vset)
+	{
+		for (auto u : vset)
+		{
+			if (c0.count(u))
 				c0.erase(u);
-			else if(c1.count(u))
+			else if (c1.count(u))
 				c1.erase(u);
 		}
 	}
@@ -312,32 +315,41 @@ public:
 		return (int)(c0.size() + c1.size());
 	}
 
-	void print2(){
-		cout<<"The documents in cluster 1 are\n";
-		for(auto x:c0)
-			if(x.is_doc)
-				cout<<x.num<<" ";
-		cout<<endl;
-		cout<<"The documents in cluster 2 are\n";
-		for(auto x:c1)
-			if(x.is_doc)
-				cout<<x.num<<" ";
-		cout<<endl;
-
+	void print2()
+	{
+		cout << "The documents in cluster 1 are: \n ";
+		for (auto x : c0)
+			if (x.is_doc)
+				cout << x.num << " ";
+		cout << endl << endl;
+		cout << "The documents in cluster 2 are: \n";
+		for (auto x : c1)
+			if (x.is_doc)
+				cout << x.num << " ";
+		cout << endl << endl;
 	}
-
-	// can make mistakes if true labels and assignments are exact opposite
-	bool match_label(Vertex u,int label){
-		if(label==1)
-			if(c0.count(u))
-				return true;
-			else
-				return false;
+	int return_label(Vertex v)
+	{
+		if (c0.count(v))
+			return 0;
+		else if (c1.count(v))
+			return 1;
 		else
-			if(c1.count(u))
+			assert(0);
+		return -1;
+	}
+	// can make mistakes if true labels and assignments are exact opposite
+	bool match_label(Vertex u, int label)
+	{
+		if (label == 1)
+			if (c0.count(u))
 				return true;
 			else
 				return false;
+		else if (c1.count(u))
+			return true;
+		else
+			return false;
 	}
 
 	void compute_nCut()
@@ -351,15 +363,16 @@ public:
 				auto n0 = u.first;
 				auto n1 = v.v;
 
-				if( ! (c0.count(n0) || c1.count(n0)) ) assert(0);
-				if( ! (c0.count(n1) || c1.count(n1)) ) assert(0);
+				if (!(c0.count(n0) || c1.count(n0)))
+					assert(0);
+				if (!(c0.count(n1) || c1.count(n1)))
+					assert(0);
 
-
-				if(c0.count(n0) && c0.count(n1))
+				if (c0.count(n0) && c0.count(n1))
 				{
 					weight_0 += v.weight;
 				}
-				else if(c1.count(n0) && c1.count(n1))
+				else if (c1.count(n0) && c1.count(n1))
 				{
 					weight_1 += v.weight;
 				}
@@ -372,10 +385,10 @@ public:
 		}
 		if (abs(weight_0) <= 0.0000001 || abs(weight_1) <= 0.0000001)
 		{
-			cout << "Normalized_cut weight = 0 " << endl;
+			//cout << "Normalized_cut weight = 0 " << endl;
 			weight_0 = (abs(weight_0) <= 0.0000001) ? 0.0000001 : weight_0;
 			weight_1 = (abs(weight_1) <= 0.0000001) ? 0.0000001 : weight_1;
-			cut_01=100.0; // it is must as otherwise normalized cut will be zero instead of inf
+			cut_01 = 100.0; // it is must as otherwise normalized cut will be zero instead of inf
 		}
 		normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 	}
@@ -383,9 +396,9 @@ public:
 	void print()
 	{
 		cout << "NC : " << normalized_cut << endl
-			 << "W0 : " << weight_0       << endl
-			 << "W1 : " << weight_1       << endl
-			 << "C01: " << cut_01         << endl;
+			 << "W0 : " << weight_0 << endl
+			 << "W1 : " << weight_1 << endl
+			 << "C01: " << cut_01 << endl;
 	}
 };
 
@@ -435,12 +448,14 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 int main()
 {
 	ifstream fin("input.in");
-	int n_batches=3;
+	int n_batches = 3;
 	Graph G;
-	int depth = 1;
-	double t = 0;
+	int depth = 2;
+	double t = 0.0;
 	int w, d, k, num_edges;
+	int total_documents = 0;
 	fin >> w >> d >> k >> num_edges;
+	total_documents += d;
 	for (int i = 0; i < num_edges; i++)
 	{
 		int u, v;
@@ -448,20 +463,24 @@ int main()
 		fin >> u >> v >> weight;
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
-	cout<<"Initial Graph input done"<<endl;
-	cout<<"size of initial graph is "<<G.get_vlist().size()<<endl;
-	//exit(0);
-	
-	sp_mat a = G.get_word_by_document_matrix();
-	vector <Vertex> order = G.get_order();
-	Row<size_t> assignments = cluster_components(a);
-	Clustering C(G,order,assignments);
-	cout<<"Clustering of initial Graph Done"<<endl;
+	//cout<<"Initial Graph input done"<<endl;
+	//cout<<"size of initial graph is "<<G.get_vlist().size() << endl << endl;
 
-	for(int b_num=0;b_num<n_batches;b_num++){
+	//cout << words << endl;
+	//exit(0);
+
+	sp_mat a = G.get_word_by_document_matrix();
+	vector<Vertex> order = G.get_order();
+	Row<size_t> assignments = cluster_components(a);
+	Clustering C(G, order, assignments);
+	cout << "Clustering of initial graph done..." << endl << endl;
+
+	for (int b_num = 0; b_num < n_batches; b_num++)
+	{
 		int num_ins, num_del, n_edges;
 		Batch B;
 		fin >> num_ins >> num_del >> n_edges;
+		total_documents += num_ins;
 		for (int i = 0; i < num_ins; i++)
 		{
 			int u, is_doc;
@@ -477,44 +496,46 @@ int main()
 			G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 		}
 
-		cout<<"Graph size after batch "<< b_num+1<<":"<<G.get_vlist().size()<<endl;
+		cout << "Graph size after batch " << b_num + 1 << " : " << G.get_vlist().size() << endl;
 
 		Graph G_sub = get_neighbourhood(G, B, depth, t);
-		C.remove(G_sub.get_vlist());	// remove all vertexes found in neighbourhood , so that merging of new clusterings can be done later with this C clustering 
+		C.remove(G_sub.get_vlist()); // remove all vertexes found in neighbourhood , so that merging of new clusterings can be done later with this C clustering
 		vector<Graph> G_list = get_connected_components(G_sub);
 		//cout << " number of cc: " << G_list.size() << endl;
 
 		for (int i = 0; i < G_list.size(); i++)
 		{
-	 		cout << "Component" << i << endl;
+			cout << "Component " << i << endl;
 			sp_mat b = G_list[i].get_word_by_document_matrix();
-			vector <Vertex> order1 = G_list[i].get_order();
+			vector<Vertex> order1 = G_list[i].get_order();
 			Row<size_t> assignments1 = cluster_components(b);
-			Clustering D(G_list[i],order1,assignments1);
-			C = merge_Clustering(G,C,D);
+			Clustering D(G_list[i], order1, assignments1);
+			C = merge_Clustering(G, C, D);
 		}
-		cout << "merged size after "<< b_num+1 <<" batch:"<< C.num_of_vertices() << endl;
+		cout << "merged size after " << b_num + 1 << " batch: " << C.num_of_vertices() << endl << endl;
 		//C.compute_nCut();
 		//C.print();
 	}
 	C.print2();
 	fin.close();
-	exit(0);
-	// Testing whether correct output is produced
-	vector<int> true_labels;
+	
+
+	int cf[2][2];
+	for (int i = 0; i < 2; i++)
+		for (int j = 0; j < 2; j++)
+			cf[i][j] = 0;
 	ifstream fin1;
 	fin1.open("labels.in");
-	int mis_classifications=0;
-	cout<<"The documents misclassified are\n";
-	for(int i=0;i<d+300;i++){
+	for (int i = 0; i < total_documents; i++)
+	{
 		int cur_label;
-		fin1>>cur_label;
-		if(!C.match_label(Vertex(i,true),cur_label)){
-			cout<<"d"<<i<<endl;
-			mis_classifications++;
-		}
-		
+		fin1 >> cur_label;
+		cf[cur_label][C.return_label(Vertex(i, true))]++;
 	}
-	cout<<"Total missclassified"<<mis_classifications;
-	fin1.close();	
+	cout << "---------------------------------------------------------------------------------" << endl;
+	cout << "Confusion Matrix: " << endl << endl;
+	cout << cf[0][0] << " " << cf[0][1] << endl
+		 << cf[1][0] << " " << cf[1][1] << endl;
+
+	fin1.close();
 }
