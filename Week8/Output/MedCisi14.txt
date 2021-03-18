@@ -1,0 +1,52 @@
+PARAMETERS
+Depth : 2
+Threshold : 0.3
+Initial input graph reading done
+
+size of initial graph is 11333
+l : 1
+words : 9140
+docs : 2193
+Time used by Normalization 36 ms 
+Time used by SVD 4359 ms 
+Time used by K-Means 215 ms 
+Clustering of initial Graph Done
+MEMORY INITIAL
+VmPeak:	  279312 kB
+
+Graph size after batch 1:11469
+l : 1
+words : 2016
+docs : 2290
+VmPeak:	  359012 kB
+Time used by Normalization 15 ms 
+Time used by SVD 4318 ms 
+Time used by K-Means 102 ms 
+Merged size after 1 batch:11469
+
+Graph size after batch 2:11590
+l : 1
+words : 1711
+docs : 2387
+VmPeak:	  359936 kB
+Time used by Normalization 14 ms 
+Time used by SVD 3130 ms 
+Time used by K-Means 107 ms 
+Merged size after 2 batch:11590
+
+Graph size after batch 3:11697
+l : 1
+words : 2115
+docs : 2490
+VmPeak:	  367764 kB
+Time used by Normalization 24 ms 
+Time used by SVD 3950 ms 
+Time used by K-Means 71 ms 
+Merged size after 3 batch:11697
+
+Memory Final
+VmPeak:	  367764 kB
+
+CONFUSION MATRIX: 
+74 959 
+1379 81 
