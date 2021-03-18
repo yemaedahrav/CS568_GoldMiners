@@ -375,6 +375,7 @@ public:
 			cout << "Normalized_cut weight = 0 " << endl;
 			weight_0 = (abs(weight_0) <= 0.0000001) ? 0.0000001 : weight_0;
 			weight_1 = (abs(weight_1) <= 0.0000001) ? 0.0000001 : weight_1;
+			cut_01=100.0; // it is must as otherwise normalized cut will be zero instead of inf
 		}
 		normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 	}
