@@ -175,11 +175,10 @@ public:
 };
 
 
-Row<size_t> cluster_components(sp_mat& a)
+Row<size_t> cluster_components(sp_mat& a,int k)
 {
     int w = a.n_rows;
     int d = a.n_cols;
-    int k = 2;
     
     //cout << " w d " << w << " " << d << endl;
     //cout << a << endl;
