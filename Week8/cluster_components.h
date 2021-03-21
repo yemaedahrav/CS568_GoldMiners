@@ -5,4 +5,4 @@
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
-Row<size_t> cluster_components(sp_mat& a);
+Row<size_t> cluster_components(sp_mat& a,int k);
