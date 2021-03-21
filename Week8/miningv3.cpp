@@ -7,6 +7,8 @@ using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
 
+int k;
+
 class Vertex
 {
 public:
@@ -260,22 +262,20 @@ vector<Graph> get_connected_components(Graph G)
 class Clustering
 {
 public:
-	set<Vertex> c0;
-	set<Vertex> c1;
-	double cut_01 = 0, weight_0 = 0, weight_1 = 0;
+	vector<set<Vertex>> c= vector<set<Vertex>>(k);
+	vector<double> cut=vector<double>(k,0.0),weight=vector<double>(k,0.0);
 	double normalized_cut;
 	Graph G;
-
+	Clustering(){}	
+	
 	// Normalized cut value, weight of cut 0, weight of cut 1
 	Clustering(Graph G, vector<Vertex> vertices, Row<size_t> assignments)
 	{
 		this->G = G;
 		for (int i = 0; i < vertices.size(); i++)
 		{
-			if (assignments[i] == 0)
-				c0.insert(vertices[i]);
-			else if (assignments[i] == 1)
-				c1.insert(vertices[i]);
+			if (assignments[i] < k)
+				c[assignments[i]].insert(vertices[i]);
 			else
 				assert(0);
 		}
@@ -284,165 +284,131 @@ public:
 	{
 		for (int i = 0; i < vertices.size(); i++)
 		{
-			if (assignments[i] == 0)
-				c0.insert(vertices[i]);
-			else if (assignments[i] == 1)
-				c1.insert(vertices[i]);
+			if (assignments[i] < k)
+				c[assignments[i]].insert(vertices[i]);
 			else
 				assert(0);
 		}
 	}
-	Clustering(Graph G, set<Vertex> c0, set<Vertex> c1)
+	Clustering(Graph G, vector<set<Vertex>> c)
 	{
-		this->c0 = c0;
-		this->c1 = c1;
+		this->c = c;
 		this->G = G;
 	}
 
 	void remove(set<Vertex> vset)
 	{
 		for (auto u : vset)
-		{
-			if (c0.count(u))
-				c0.erase(u);
-			else if (c1.count(u))
-				c1.erase(u);
-		}
+			for(int i=0;i<k;i++)			
+				c[i].erase(u);
 	}
 
 	int num_of_vertices()
 	{
-		return (int)(c0.size() + c1.size());
+		int sum=0;
+		for(auto ci:c)
+			sum+=ci.size();
+		return (int)(sum);
 	}
 
 	void print2()
 	{
-		cout << "The documents in cluster 1 are: \n ";
-		for (auto x : c0)
-			if (x.is_doc)
-				cout << x.num << " ";
-		cout << endl << endl;
-		cout << "The documents in cluster 2 are: \n";
-		for (auto x : c1)
-			if (x.is_doc)
-				cout << x.num << " ";
-		cout << endl << endl;
+		for(int i=0;i<k;i++){
+			cout << "The documents in cluster "<<i+1<<" are: \n ";
+			for (auto x :c[i])
+				if (x.is_doc)
+					cout <<get_char(x.is_doc)<< x.num << " ";
+			cout << endl << endl;
+		}
 	}
 	int return_label(Vertex v)
 	{
-		if (c0.count(v))
-			return 0;
-		else if (c1.count(v))
-			return 1;
-		else
-			assert(0);
+		for(int i=0;i<k;i++)
+			if(c[i].count(v))
+				return i;
+		assert(0);
 		return -1;
-	}
-	// can make mistakes if true labels and assignments are exact opposite
-	bool match_label(Vertex u, int label)
-	{
-		if (label == 1)
-			if (c0.count(u))
-				return true;
-			else
-				return false;
-		else if (c1.count(u))
-			return true;
-		else
-			return false;
 	}
 
 	void compute_nCut()
 	{
 		auto sub_adj_list = G.get_adj_list();
-		normalized_cut = weight_0 = weight_1 = cut_01 = 0;
-		for (auto u : sub_adj_list)
+		normalized_cut= 0;
+		for(int i=0;i<k;i++){
+			weight[i]=0;
+			cut[i]=0;
+		}
+		for (auto it : sub_adj_list)
 		{
-			for (auto v : u.second)
+			for (auto e : it.second)
 			{
-				auto n0 = u.first;
-				auto n1 = v.v;
-
-				if (!(c0.count(n0) || c1.count(n0)))
-					assert(0);
-				if (!(c0.count(n1) || c1.count(n1)))
-					assert(0);
-
-				if (c0.count(n0) && c0.count(n1))
-				{
-					weight_0 += v.weight;
-				}
-				else if (c1.count(n0) && c1.count(n1))
-				{
-					weight_1 += v.weight;
-				}
-				else
-				{
-					cut_01 += v.weight;
+				auto u = it.first;
+				for(int i=0;i<k;i++){
+					if(c[i].count(u)){
+						weight[i]+=e.weight;
+						if(!c[i].count(e.v))
+							cut[i]+=e.weight;
+					}
 				}
 			}
-			//Checking if weights are zero.
 		}
-		if (abs(weight_0) <= 0.0000001 || abs(weight_1) <= 0.0000001)
-		{
-			//cout << "Normalized_cut weight = 0 " << endl;
-			weight_0 = (abs(weight_0) <= 0.0000001) ? 0.0000001 : weight_0;
-			weight_1 = (abs(weight_1) <= 0.0000001) ? 0.0000001 : weight_1;
-			cut_01 = 100.0; // it is must as otherwise normalized cut will be zero instead of inf
+		//Checking if weights are zero
+		for(int i=0;i<k;i++){
+			if (abs(weight[i]) <= 0.0000001){
+				weight[i]=0.0000001;
+				cut[i]=100.0;
+			}
+			normalized_cut += cut[i]/ weight[i];
 		}
-		normalized_cut = cut_01 * (1 / weight_0 + 1 / weight_1);
 	}
 
 	void print()
 	{
-		cout << "NC : " << normalized_cut << endl
-			 << "W0 : " << weight_0 << endl
-			 << "W1 : " << weight_1 << endl
-			 << "C01: " << cut_01 << endl;
+		cout << "NC : " << normalized_cut << endl;
+		for(int i=0;i<k;i++)
+			cout<<"W"<<i<<" :"<<weight[i]<<endl;
+		cout<<endl;
+		for(int i=0;i<k;i++)
+			cout<<"C"<<i<<" :"<<cut[i]<<endl;
 	}
 };
 
-Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int type)
+Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int j)
 {
-	//create graph, vertex vector, assignments vector
-	set<Vertex> x0, x1, y0, y1, total, to_merge;
-	if (type == 0)
+	set<Vertex> to_merge = d.c[j];
+	double min_cut_value=LONG_MAX;
+	Clustering c_prime;
+	for(int i=0;i<k;i++)
 	{
-		to_merge = d.c0;
+		vector<set<Vertex>> x=c.c;	
+		set_union(x[i].begin(), x[i].end(), to_merge.begin(), to_merge.end(), inserter(x[i], x[i].begin()));
+		set<Vertex> total=x[0];
+		for(int r=1;r<k;r++)
+				set_union(total.begin(), total.end(), x[r].begin(), x[r].end(), inserter(total, total.begin()));
+		
+		Clustering candidate(G.get_subgraph(total),x);
+		candidate.compute_nCut();
+		if (candidate.normalized_cut <= min_cut_value){
+			c_prime=candidate;
+			min_cut_value=candidate.normalized_cut;
+		}
 	}
-	else
-	{
-		to_merge = d.c1;
-	}
-
-	set_union(c.c0.begin(), c.c0.end(), to_merge.begin(), to_merge.end(), inserter(x0, x0.begin()));
-	x1 = c.c1;
-
-	y0 = c.c0;
-	set_union(c.c1.begin(), c.c1.end(), to_merge.begin(), to_merge.end(), inserter(y1, y1.begin()));
-
-	set_union(x0.begin(), x0.end(), x1.begin(), x1.end(), inserter(total, total.begin()));
-	Clustering candidate1(G.get_subgraph(total), x0, x1);
-	Clustering candidate2(G.get_subgraph(total), y0, y1);
-
-	candidate1.compute_nCut();
-	candidate2.compute_nCut();
-
-	if (candidate1.normalized_cut <= candidate2.normalized_cut)
-	{
-		return candidate1;
-	}
-	else
-	{
-		return candidate2;
-	}
+	return c_prime;
 }
 
 Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 {
-	Clustering c_prime = merge_Clustering_Cluster(G, c, d, 0);
-	Clustering final = merge_Clustering_Cluster(G, c_prime, d, 1);
-	return final;
+	Clustering c_prime=c;
+	//cout<<"c_prime initial\n";
+	//c_prime.print2();
+	//cout<<endl;
+	for(int i=0;i<k;i++){	
+		c_prime = merge_Clustering_Cluster(G, c_prime, d, i);
+		//cout<<"c_prime'"<<i<<" \n";
+		//c_prime.print2();
+		//cout<<endl;
+	}
+	return c_prime;
 }
 
 int main()
@@ -452,7 +418,7 @@ int main()
 	Graph G;
 	int depth = 2;
 	double t = 0.0;
-	int w, d, k, num_edges;
+	int w, d, num_edges;
 	int total_documents = 0;
 	fin >> w >> d >> k >> num_edges;
 	total_documents += d;
@@ -471,7 +437,7 @@ int main()
 
 	sp_mat a = G.get_word_by_document_matrix();
 	vector<Vertex> order = G.get_order();
-	Row<size_t> assignments = cluster_components(a);
+	Row<size_t> assignments = cluster_components(a,k);
 	Clustering C(G, order, assignments);
 	cout << "Clustering of initial graph done..." << endl << endl;
 
@@ -508,11 +474,16 @@ int main()
 			cout << "Component " << i << endl;
 			sp_mat b = G_list[i].get_word_by_document_matrix();
 			vector<Vertex> order1 = G_list[i].get_order();
-			Row<size_t> assignments1 = cluster_components(b);
+			Row<size_t> assignments1 = cluster_components(b,k);
 			Clustering D(G_list[i], order1, assignments1);
+			cout<<"D1 size :"<<D.c[0].size()<<" D2 size: "<<D.c[1].size()<<endl;	
+			//D.print2();		
 			C = merge_Clustering(G, C, D);
+			//C.print2();
+			//exit(0);
 		}
 		cout << "merged size after " << b_num + 1 << " batch: " << C.num_of_vertices() << endl << endl;
+		//exit(0);
 		//C.compute_nCut();
 		//C.print();
 	}
@@ -520,9 +491,9 @@ int main()
 	fin.close();
 	
 
-	int cf[2][2];
-	for (int i = 0; i < 2; i++)
-		for (int j = 0; j < 2; j++)
+	int cf[k][k];
+	for (int i = 0; i < k; i++)
+		for (int j = 0; j < k; j++)
 			cf[i][j] = 0;
 	ifstream fin1;
 	fin1.open("labels.in");
@@ -534,8 +505,11 @@ int main()
 	}
 	cout << "---------------------------------------------------------------------------------" << endl;
 	cout << "Confusion Matrix: " << endl << endl;
-	cout << cf[0][0] << " " << cf[0][1] << endl
-		 << cf[1][0] << " " << cf[1][1] << endl;
-
+	for (int i = 0; i < k; i++){
+		for (int j = 0; j < k; j++){
+			cout<<cf[i][j]<<" ";
+		}
+		cout<<endl;
+	}
 	fin1.close();
 }
