@@ -30,6 +30,17 @@ public:
 			return num < v.num;
 		return is_doc < v.is_doc;
 	}
+	bool operator==(const Vertex& lhs)
+	{
+		if((*this).num == lhs.num && (*this).is_doc == lhs.is_doc)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
 };
 
 // note that graph is undirected , but edges are directed, i.e graph will have both u -> v, and v->u
@@ -114,6 +125,31 @@ public:
 		return Graph(sub_adj_list, v_set);
 	};
 
+	void delete_subgraph(set<Vertex> v_set)
+	{
+		for(auto u: v_set)
+		{
+			for(auto v: adj_list[u])
+			{
+				auto pos = adj_list[v.v].begin();
+				for(auto itr = adj_list[v.v].begin(); itr != adj_list[v.v].end(); itr++)
+				{
+					if((*itr).v == u)
+					{
+						pos = itr;
+					}
+				}
+				adj_list[v.v].erase(pos);
+			}
+		}
+
+		for(auto u: v_set)
+		{
+			vlist.erase(u);
+		}
+		
+	}
+
 	void add_Edge(Vertex u, Vertex v, double weight)
 	{
 		adj_list[u].push_back(Edge(v, weight));
@@ -186,9 +222,19 @@ public:
 		return ins_vertices;
 	}
 
+	vector<Vertex> get_del_vertices()
+	{
+		return del_vertices;
+	}
+
 	void add_v(Vertex u)
 	{
 		ins_vertices.push_back(u);
+	}
+
+	void del_v(Vertex u)
+	{
+		del_vertices.push_back(u);
 	}
 };
 
@@ -207,10 +253,16 @@ void dfs(Vertex &u, map<Vertex, vector<Edge>> &adj_list, int &c_num, map<Vertex,
 Graph get_neighbourhood(Graph G, Batch B, int d, double threshold)
 {
 	map<Vertex, vector<Edge>> adj_list = G.get_adj_list();
-	vector<Vertex> ins_vertices = B.get_ins_vertices();
+	bool insertion = !(B.get_ins_vertices().empty());
+	vector<Vertex> modify_vertices;
+	if(insertion)
+		modify_vertices = B.get_ins_vertices();
+	else
+		modify_vertices = B.get_del_vertices();
+
 	queue<Vertex> q;
 	set<Vertex> v_set;
-	for (auto u : ins_vertices)
+	for (auto u : modify_vertices)
 	{
 		q.push(u);
 		v_set.insert(u);
@@ -233,8 +285,21 @@ Graph get_neighbourhood(Graph G, Batch B, int d, double threshold)
 			}
 		}
 	}
+	if(insertion)
+		return G.get_subgraph(v_set);
+	else
+	{
+		for(auto u: B.get_del_vertices())
+		{
+			v_set.erase(u);
+		}
+		set <Vertex> del_vertices;
+		for(auto u: B.get_del_vertices())
+			del_vertices.insert(u);
+		G.delete_subgraph(del_vertices);
 
-	return G.get_subgraph(v_set);
+		return G.get_subgraph(v_set);
+	}
 }
 
 vector<Graph> get_connected_components(Graph G)
@@ -497,19 +562,33 @@ int main(int argc,char* argv[])
 			fin >> u >> is_doc;
 			B.add_v(Vertex(u, is_doc));
 		}
-
-		for (int i = 0; i < n_edges; i++)
+		
+		for(int i = 0; i < num_del; i++)
 		{
-			int u, v;
-			double weight;
-			fin >> u >> v >> weight;
-			G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
+			int u, is_doc;
+			fin >> u >> is_doc;
+			B.del_v(Vertex(u, is_doc));
+		}
+
+		if(num_ins > 0)
+		{
+			for (int i = 0; i < n_edges; i++)
+			{
+				int u, v;
+				double weight;
+				fin >> u >> v >> weight;
+				G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
+			}
 		}
 		//if(b_num==n_batches-1) G.print();
 
 		cout << "Graph size after batch " << b_num + 1 << " : " << G.get_vlist().size() << endl;
-
+		set <Vertex> del_vertex;
+		for(auto u: B.get_del_vertices())
+			del_vertex.insert(u);
 		Graph G_sub = get_neighbourhood(G, B, depth, t);
+		C.G.delete_subgraph(del_vertex);
+		C.remove(del_vertex);
 		C.remove(G_sub.get_vlist()); // remove all vertexes found in neighbourhood , so that merging of new clusterings can be done later with this C clustering
 		vector<Graph> G_list = get_connected_components(G_sub);
 		//cout << " number of cc: " << G_list.size() << endl;
