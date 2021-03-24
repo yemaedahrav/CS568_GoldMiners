@@ -411,12 +411,43 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 	return c_prime;
 }
 
-int main()
+void pr_conf_mat(vector<int> labels,Clustering D){
+	int cf[k][k];
+	for (int i = 0; i < k; i++)
+		for (int j = 0; j < k; j++)
+			cf[i][j] = 0;
+				
+	for (int i = 0; i <k; i++){
+		for(auto x:D.c[i])
+			if(x.is_doc){
+				cf[labels[x.num]][i]++;
+			}
+	}
+	cout << "---------------------------------------------------------------------------------" << endl;
+	cout << "Confusion Matrix: " << endl << endl;
+	for (int i = 0; i < k; i++){
+		for (int j = 0; j < k; j++){
+			cout<<cf[i][j]<<" ";
+		}
+		cout<<endl;
+	}	
+}
+
+int main(int argc,char* argv[])
 {
-	ifstream fin("input.in");
-	int n_batches = 3;
+	string input_f="input.in";
+	string labels_f="labels.in";
+	if(argc>1){
+		input_f=argv[1];
+		labels_f=argv[2];
+	}
+	ifstream fin(input_f);
+	int n_batches,depth;
 	Graph G;
-	int depth = 2;
+	cout<<"Enter number of batches:";
+	cin>>n_batches;
+	cout<<"Enter the depth value:";
+	cin>>depth;
 	double t = 0.0;
 	int w, d, num_edges;
 	int total_documents = 0;
@@ -441,6 +472,19 @@ int main()
 	Clustering C(G, order, assignments);
 	cout << "Clustering of initial graph done..." << endl << endl;
 
+	ifstream fin1(labels_f);
+	vector<int> labels;
+	int cur_label;
+	while(fin1 >> cur_label)
+	{
+		labels.push_back(cur_label);
+	}
+	if(labels.size()==0)
+	{
+		cout<<"AARG";
+		exit(0);
+	}
+	fin1.close();
 	for (int b_num = 0; b_num < n_batches; b_num++)
 	{
 		int num_ins, num_del, n_edges;
@@ -461,6 +505,7 @@ int main()
 			fin >> u >> v >> weight;
 			G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 		}
+		//if(b_num==n_batches-1) G.print();
 
 		cout << "Graph size after batch " << b_num + 1 << " : " << G.get_vlist().size() << endl;
 
@@ -471,12 +516,25 @@ int main()
 
 		for (int i = 0; i < G_list.size(); i++)
 		{
-			cout << "Component " << i << endl;
+			//cout << "Component " << i << endl;
+			//if(b_num==n_batches-1) G_list[i].print();
 			sp_mat b = G_list[i].get_word_by_document_matrix();
+			/*
+			10898 742 0.684
+41 1657 0.178
+			*/
+			/*
+			if(n_batches-1==b_num){
+				cout<<b(10898,742)<<endl;
+				cout<<b(41,1657)<<endl;
+			} 
+			*/
 			vector<Vertex> order1 = G_list[i].get_order();
 			Row<size_t> assignments1 = cluster_components(b,k);
 			Clustering D(G_list[i], order1, assignments1);
-			cout<<"D1 size :"<<D.c[0].size()<<" D2 size: "<<D.c[1].size()<<endl;	
+			pr_conf_mat(labels,D);
+			cout<<C.num_of_vertices()<<endl;
+			//cout<<"D1 size :"<<D.c[0].size()<<" D2 size: "<<D.c[1].size()<<endl;	
 			//D.print2();		
 			C = merge_Clustering(G, C, D);
 			//C.print2();
@@ -487,20 +545,19 @@ int main()
 		//C.compute_nCut();
 		//C.print();
 	}
-	C.print2();
+	//C.print2();
 	fin.close();
 	
-
+	pr_conf_mat(labels,C);
+	/*
 	int cf[k][k];
 	for (int i = 0; i < k; i++)
 		for (int j = 0; j < k; j++)
 			cf[i][j] = 0;
-	ifstream fin1;
-	fin1.open("labels.in");
 	for (int i = 0; i < total_documents; i++)
 	{
 		int cur_label;
-		fin1 >> cur_label;
+		cur_label=labels[i];
 		cf[cur_label][C.return_label(Vertex(i, true))]++;
 	}
 	cout << "---------------------------------------------------------------------------------" << endl;
@@ -512,4 +569,5 @@ int main()
 		cout<<endl;
 	}
 	fin1.close();
+	*/
 }
