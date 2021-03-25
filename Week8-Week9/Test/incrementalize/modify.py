@@ -4,8 +4,8 @@
 '''
 
 #modify hyperparameters 
-batch_size = 500
-n_batches = 1
+batch_size = 70
+n_batches = 25
 want_randomization = True
 
 #output file paths

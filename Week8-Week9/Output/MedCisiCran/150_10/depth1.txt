@@ -1,0 +1,110 @@
+Enter number of batches:10
+Enter the depth value:1
+Clustering of initial graph done...
+
+Graph size after batch 1 : 13245
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+18 33 1 
+43 0 0 
+55 0 0 
+9619
+merged size after 1 batch: 13245
+
+Graph size after batch 2 : 13512
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+3 25 10 
+0 0 56 
+0 1 55 
+10083
+merged size after 2 batch: 13512
+
+Graph size after batch 3 : 13729
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+15 21 4 
+51 0 0 
+7 0 52 
+10325
+merged size after 3 batch: 13729
+
+Graph size after batch 4 : 13962
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+1 33 12 
+0 0 52 
+0 0 52 
+10509
+merged size after 4 batch: 13962
+
+Graph size after batch 5 : 14168
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+0 20 14 
+0 0 54 
+25 0 37 
+10728
+merged size after 5 batch: 14168
+
+Graph size after batch 6 : 14358
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+1 24 13 
+0 1 58 
+0 0 53 
+10907
+merged size after 6 batch: 14358
+
+Graph size after batch 7 : 14544
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+33 10 0 
+0 52 1 
+0 9 45 
+10895
+merged size after 7 batch: 14544
+
+Graph size after batch 8 : 14722
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+8 6 32 
+47 0 0 
+57 0 0 
+11074
+merged size after 8 batch: 14722
+
+Graph size after batch 9 : 14887
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+14 2 25 
+0 0 48 
+0 0 61 
+11338
+merged size after 9 batch: 14887
+
+Graph size after batch 10 : 15043
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+15 1 23 
+55 0 0 
+55 1 0 
+11547
+merged size after 10 batch: 15043
+
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+149 837 47 
+1395 1 2 
+447 2 1011 
