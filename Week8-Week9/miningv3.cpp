@@ -342,7 +342,10 @@ public:
 			if (assignments[i] < k)
 				c[assignments[i]].insert(vertices[i]);
 			else
+			{
+				cout << assignments[i] << endl;
 				assert(0);
+			}
 		}
 	}
 	Clustering(vector<Vertex> vertices, Row<size_t> assignments)
@@ -352,7 +355,10 @@ public:
 			if (assignments[i] < k)
 				c[assignments[i]].insert(vertices[i]);
 			else
+			{
+				cout << assignments[i] << endl;
 				assert(0);
+			}
 		}
 	}
 	Clustering(Graph G, vector<set<Vertex>> c)

@@ -2,13 +2,127 @@
 #include <mlpack/methods/kmeans/kmeans.hpp>
 #include <sys/types.h>
 #include <unistd.h>
-#include "cluster_components.h"
+
 
 using namespace std;
 using namespace arma;
 using namespace mlpack::kmeans;
 
 clock_t start_time;
+
+struct point
+{
+    vector <double> x;
+    point(int size)
+    {
+        x.resize(size);
+    }
+    point()
+    {
+    
+    }
+
+};
+
+point add(point a, point b)
+{
+    assert(a.x.size() == b.x.size());
+    point c;
+    c.x.assign(a.x.size(),0);
+
+    for(int i = 0; i < a.x.size(); i++)
+    {
+        c.x[i] = a.x[i] + b.x[i];
+    }
+    return c;
+}
+
+double dist(point a, point b)
+{
+    assert(a.x.size() == b.x.size());
+    double ans = 0;
+
+    for(int i = 0; i < a.x.size(); i++)
+    {
+        ans += (a.x[i] - b.x[i])*(a.x[i] -b.x[i]);
+    }
+    return ans;
+}
+void kmeans_algorithm(mat z, int k, Row<size_t>& assignments)
+{
+    int iterations = 10;
+    int r = z.n_rows;
+    int c = z.n_cols;
+
+    assignments.resize(r);
+
+    vector <point> data;
+    for(int i = 0; i < r; i++)
+    {
+        point temp(c);
+        for(int j = 0; j < c; j++)
+        {
+            temp.x[j] = z(i,j);
+            
+        }
+        data.push_back(temp);
+    }
+    
+    vector <point> centroids;
+    for(int i = 0; i < k; i++)
+    {
+        centroids.push_back(data[i]);
+    }
+
+    
+
+    while(iterations--)
+    {
+        for(int i = 0; i < r; i++)
+        {
+            point a = data[i];
+            double min = 1e18;
+            int assign = -1;
+            for(int j = 0; j < k; j++)
+            {
+                point center = centroids[j];
+                double distance = dist(a,center);
+                if( distance <= min)
+                {
+                    min = distance;
+                    assign = j;
+                }
+            }
+            assignments(i) = assign;
+        }
+
+        point zero;
+        zero.x.assign(c,0);
+        vector <point> new_centroids(k,zero);
+        vector <int> freq(k,0);
+        for(int i = 0; i < r; i++)
+        {
+            point a = data[i];
+            int assign = assignments[i];
+
+            new_centroids[assign] = add(a,new_centroids[assign]);
+            freq[assign]++;
+        }
+
+        for(int i = 0; i < k; i++)
+        {
+            if(freq[i] == 0)
+                continue;
+            for(int j = 0; j < c; j++)
+            {
+                new_centroids[i].x[j] /= freq[i];
+            }
+        }
+        centroids = new_centroids;
+    }
+    
+  
+}
 void print_maxmem()
 {
     pid_t p = getpid();
@@ -152,7 +266,7 @@ public:
         // The assignments will be stored in this vector.
         start_sw();
         KMeans<> k;
-        k.Cluster(mat(z1.t()), num_of_clusters, assignments);
+        kmeans_algorithm(mat(z1), num_of_clusters, assignments);
         fit_complete = true;
         stop_sw("kmeans");
         }
