@@ -1,0 +1,40 @@
+Enter number of batches:3
+Enter the depth value:1
+Clustering of initial graph done...
+
+Graph size after batch 1 : 12974
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+12 6 134 
+0 171 0 
+175 2 0 
+6259
+merged size after 1 batch: 12974
+
+Graph size after batch 2 : 13800
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+53 67 6 
+0 0 192 
+0 0 182 
+7078
+merged size after 2 batch: 13800
+
+Graph size after batch 3 : 14492
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+13 87 26 
+0 0 191 
+156 0 27 
+7691
+merged size after 3 batch: 14492
+
+---------------------------------------------------------------------------------
+Confusion Matrix: 
+
+794 46 65 
+0 1219 3 
+0 217 1047 
