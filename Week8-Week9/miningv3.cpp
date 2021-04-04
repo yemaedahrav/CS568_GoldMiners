@@ -562,6 +562,7 @@ int main(int argc,char* argv[])
 		Batch B;
 		fin >> num_ins >> num_del >> n_edges;
 		total_documents += num_ins;
+		total_documents -= num_del;
 		for (int i = 0; i < num_ins; i++)
 		{
 			int u, is_doc;
@@ -597,6 +598,15 @@ int main(int argc,char* argv[])
 		C.remove(del_vertex);
 		C.remove(G_sub.get_vlist()); // remove all vertexes found in neighbourhood , so that merging of new clusterings can be done later with this C clustering
 		vector<Graph> G_list = get_connected_components(G_sub);
+		vector<int> after_del_labels;
+		
+		if(num_del!=0){
+			ifstream fin2("labels"+to_string(b_num+1)+".in");
+			int cur_label;
+			while(fin2>>cur_label)
+				after_del_labels.push_back(cur_label);
+		}
+		//cout<<"number of components"<<G_list.size()<<endl;
 		//cout << " number of cc: " << G_list.size() << endl;
 
 		for (int i = 0; i < G_list.size(); i++)
@@ -617,11 +627,12 @@ int main(int argc,char* argv[])
 			vector<Vertex> order1 = G_list[i].get_order();
 			Row<size_t> assignments1 = cluster_components(b,k);
 			Clustering D(G_list[i], order1, assignments1);
-			pr_conf_mat(labels,D);
-			cout<<C.num_of_vertices()<<endl;
+			
+			//cout<<C.num_of_vertices()<<endl;
 			//cout<<"D1 size :"<<D.c[0].size()<<" D2 size: "<<D.c[1].size()<<endl;	
 			//D.print2();		
 			C = merge_Clustering(G, C, D);
+			pr_conf_mat(after_del_labels,C);
 			//C.print2();
 			//exit(0);
 		}
@@ -633,7 +644,7 @@ int main(int argc,char* argv[])
 	//C.print2();
 	fin.close();
 	
-	pr_conf_mat(labels,C);
+	//pr_conf_mat(labels,C);
 	/*
 	int cf[k][k];
 	for (int i = 0; i < k; i++)
