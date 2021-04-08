@@ -9,7 +9,7 @@ Installation of Armadillo, Boost and mlpack and other required packages is neede
 The following are the commands for their installation on Linux
 
 ```
-$sudo apt-get install libboost-all-dev
+$ sudo apt-get install libboost-all-dev
 $ apt install libmlpack-dev mlpack-bin libarmadillo-dev
 $ sudo apt-get install libblas-dev liblapack-dev
 $ apt-get install libatlas-base-dev
