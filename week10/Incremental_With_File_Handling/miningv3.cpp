@@ -6,7 +6,6 @@
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/map.hpp>
 
-
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include "cluster_components.h"
@@ -16,18 +15,26 @@ using namespace mlpack::kmeans;
 
 int k;
 
+/**********************************
+ * 
+ * 				Vertex
+ * 
+ * *******************************/
 class Vertex
 {
-    friend class boost::serialization::access;
-	template<class Archive>
 
-	void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & num;
-		ar & is_doc;
-		ar & cluster;
-		ar & weight;
+	//Code to write to files
+	friend class boost::serialization::access;
+	template <class Archive>
+
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		ar &num;
+		ar &is_doc;
+		ar &cluster;
+		ar &weight;
 	}
+
 public:
 	int num;
 	bool is_doc;
@@ -42,7 +49,6 @@ public:
 	}
 	~Vertex()
 	{
-
 	}
 
 	bool operator<(const Vertex &v) const
@@ -51,9 +57,9 @@ public:
 			return num < v.num;
 		return is_doc < v.is_doc;
 	}
-	bool operator==(const Vertex& lhs)
+	bool operator==(const Vertex &lhs)
 	{
-		if((*this).num == lhs.num && (*this).is_doc == lhs.is_doc)
+		if ((*this).num == lhs.num && (*this).is_doc == lhs.is_doc)
 		{
 			return true;
 		}
@@ -65,14 +71,20 @@ public:
 };
 
 // note that graph is undirected , but edges are directed, i.e graph will have both u -> v, and v->u
+/**********************************
+ * 
+ * 				Edge
+ * 
+ * *******************************/
+
 class Edge
 {
 	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & v;
-		ar & weight;
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		ar &v;
+		ar &weight;
 	}
 
 public:
@@ -85,11 +97,9 @@ public:
 	}
 	Edge()
 	{
-
 	}
 	~Edge()
 	{
-		
 	}
 };
 
@@ -100,16 +110,22 @@ char get_char(bool y)
 	return 'w';
 }
 
+/**********************************
+ * 
+ * 				Graph
+ * 
+ * *******************************/
 class Graph
 {
 	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & adj_list;
-		ar & vlist;
-		ar & order;
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		ar &adj_list;
+		ar &vlist;
+		ar &order;
 	}
+
 private:
 	map<Vertex, vector<Edge>> adj_list;
 	set<Vertex> vlist;
@@ -129,12 +145,11 @@ public:
 	};
 	~Graph()
 	{
-
 	}
 
 	void destroy()
 	{
-		for(auto u: adj_list)
+		for (auto u : adj_list)
 		{
 			u.second.clear();
 		}
@@ -187,14 +202,14 @@ public:
 
 	void delete_subgraph(set<Vertex> v_set)
 	{
-		for(auto u: v_set)
+		for (auto u : v_set)
 		{
-			for(auto v: adj_list[u])
+			for (auto v : adj_list[u])
 			{
 				auto pos = adj_list[v.v].begin();
-				for(auto itr = adj_list[v.v].begin(); itr != adj_list[v.v].end(); itr++)
+				for (auto itr = adj_list[v.v].begin(); itr != adj_list[v.v].end(); itr++)
 				{
-					if((*itr).v == u)
+					if ((*itr).v == u)
 					{
 						pos = itr;
 					}
@@ -203,11 +218,10 @@ public:
 			}
 		}
 
-		for(auto u: v_set)
+		for (auto u : v_set)
 		{
 			vlist.erase(u);
 		}
-		
 	}
 
 	void add_Edge(Vertex u, Vertex v, double weight)
@@ -271,6 +285,11 @@ public:
 	}
 };
 
+/**********************************
+ * 
+ * 				Batch
+ * 
+ * *******************************/
 class Batch
 {
 	vector<Vertex> ins_vertices, del_vertices;
@@ -315,7 +334,7 @@ Graph get_neighbourhood(Graph G, Batch B, int d, double threshold)
 	map<Vertex, vector<Edge>> adj_list = G.get_adj_list();
 	bool insertion = !(B.get_ins_vertices().empty());
 	vector<Vertex> modify_vertices;
-	if(insertion)
+	if (insertion)
 		modify_vertices = B.get_ins_vertices();
 	else
 		modify_vertices = B.get_del_vertices();
@@ -345,16 +364,16 @@ Graph get_neighbourhood(Graph G, Batch B, int d, double threshold)
 			}
 		}
 	}
-	if(insertion)
+	if (insertion)
 		return G.get_subgraph(v_set);
 	else
 	{
-		for(auto u: B.get_del_vertices())
+		for (auto u : B.get_del_vertices())
 		{
 			v_set.erase(u);
 		}
-		set <Vertex> del_vertices;
-		for(auto u: B.get_del_vertices())
+		set<Vertex> del_vertices;
+		for (auto u : B.get_del_vertices())
 			del_vertices.insert(u);
 		G.delete_subgraph(del_vertices);
 
@@ -384,28 +403,35 @@ vector<Graph> get_connected_components(Graph G)
 
 	return G_list;
 }
+
+/**********************************
+ * 
+ * 				Clustering
+ * 
+ * *******************************/
 class Clustering
 {
 	friend class boost::serialization::access;
-	template<class Archive>
-	void serialize(Archive & ar, const unsigned int version)
-    {
-        ar & c;
-		ar & cut;
-		ar & normalized_cut;
-		ar & G;
+	template <class Archive>
+	void serialize(Archive &ar, const unsigned int version)
+	{
+		ar &c;
+		ar &cut;
+		ar &normalized_cut;
+		ar &G;
 	}
+
 public:
-	vector<set<Vertex>> c= vector<set<Vertex>>(k);
-	vector<double> cut=vector<double>(k,0.0),weight=vector<double>(k,0.0);
+	vector<set<Vertex>> c = vector<set<Vertex>>(k);
+	vector<double> cut = vector<double>(k, 0.0), weight = vector<double>(k, 0.0);
 	double normalized_cut;
 	Graph G;
-	Clustering(){}	
-	~Clustering(){}
+	Clustering() {}
+	~Clustering() {}
 
 	void destroy()
 	{
-		for(auto u: c)
+		for (auto u : c)
 		{
 			u.clear();
 		}
@@ -450,32 +476,34 @@ public:
 	void remove(set<Vertex> vset)
 	{
 		for (auto u : vset)
-			for(int i=0;i<k;i++)			
+			for (int i = 0; i < k; i++)
 				c[i].erase(u);
 	}
 
 	int num_of_vertices()
 	{
-		int sum=0;
-		for(auto ci:c)
-			sum+=ci.size();
+		int sum = 0;
+		for (auto ci : c)
+			sum += ci.size();
 		return (int)(sum);
 	}
 
 	void print2()
 	{
-		for(int i=0;i<k;i++){
-			cout << "The documents in cluster "<<i+1<<" are: \n ";
-			for (auto x :c[i])
+		for (int i = 0; i < k; i++)
+		{
+			cout << "The documents in cluster " << i + 1 << " are: \n ";
+			for (auto x : c[i])
 				if (x.is_doc)
-					cout <<get_char(x.is_doc)<< x.num << " ";
-			cout << endl << endl;
+					cout << get_char(x.is_doc) << x.num << " ";
+			cout << endl
+				 << endl;
 		}
 	}
 	int return_label(Vertex v)
 	{
-		for(int i=0;i<k;i++)
-			if(c[i].count(v))
+		for (int i = 0; i < k; i++)
+			if (c[i].count(v))
 				return i;
 		assert(0);
 		return -1;
@@ -484,64 +512,70 @@ public:
 	void compute_nCut()
 	{
 		auto sub_adj_list = G.get_adj_list();
-		normalized_cut= 0;
-		for(int i=0;i<k;i++){
-			weight[i]=0;
-			cut[i]=0;
+		normalized_cut = 0;
+		for (int i = 0; i < k; i++)
+		{
+			weight[i] = 0;
+			cut[i] = 0;
 		}
 		for (auto it : sub_adj_list)
 		{
 			for (auto e : it.second)
 			{
 				auto u = it.first;
-				for(int i=0;i<k;i++){
-					if(c[i].count(u)){
-						weight[i]+=e.weight;
-						if(!c[i].count(e.v))
-							cut[i]+=e.weight;
+				for (int i = 0; i < k; i++)
+				{
+					if (c[i].count(u))
+					{
+						weight[i] += e.weight;
+						if (!c[i].count(e.v))
+							cut[i] += e.weight;
 					}
 				}
 			}
 		}
 		//Checking if weights are zero
-		for(int i=0;i<k;i++){
-			if (abs(weight[i]) <= 0.0000001){
-				weight[i]=0.0000001;
-				cut[i]=100.0;
+		for (int i = 0; i < k; i++)
+		{
+			if (abs(weight[i]) <= 0.0000001)
+			{
+				weight[i] = 0.0000001;
+				cut[i] = 100.0;
 			}
-			normalized_cut += cut[i]/ weight[i];
+			normalized_cut += cut[i] / weight[i];
 		}
 	}
 
 	void print()
 	{
 		cout << "NC : " << normalized_cut << endl;
-		for(int i=0;i<k;i++)
-			cout<<"W"<<i<<" :"<<weight[i]<<endl;
-		cout<<endl;
-		for(int i=0;i<k;i++)
-			cout<<"C"<<i<<" :"<<cut[i]<<endl;
+		for (int i = 0; i < k; i++)
+			cout << "W" << i << " :" << weight[i] << endl;
+		cout << endl;
+		for (int i = 0; i < k; i++)
+			cout << "C" << i << " :" << cut[i] << endl;
 	}
 };
 
 Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int j)
 {
 	set<Vertex> to_merge = d.c[j];
-	double min_cut_value=LONG_MAX;
+	double min_cut_value = LONG_MAX;
 	Clustering c_prime;
-	for(int i=0;i<k;i++)
+	for (int i = 0; i < k; i++)
 	{
-		vector<set<Vertex>> x=c.c;	
+		vector<set<Vertex>> x = c.c;
 		set_union(x[i].begin(), x[i].end(), to_merge.begin(), to_merge.end(), inserter(x[i], x[i].begin()));
-		set<Vertex> total=x[0];
-		for(int r=1;r<k;r++)
-				set_union(total.begin(), total.end(), x[r].begin(), x[r].end(), inserter(total, total.begin()));
-		
-		Clustering candidate(G.get_subgraph(total),x);
+		set<Vertex> total = x[0];
+		for (int r = 1; r < k; r++)
+			set_union(total.begin(), total.end(), x[r].begin(), x[r].end(), inserter(total, total.begin()));
+
+		Clustering candidate(G.get_subgraph(total), x);
 		candidate.compute_nCut();
-		if (candidate.normalized_cut <= min_cut_value){
-			c_prime=candidate;
-			min_cut_value=candidate.normalized_cut;
+		if (candidate.normalized_cut <= min_cut_value)
+		{
+			c_prime = candidate;
+			min_cut_value = candidate.normalized_cut;
 		}
 	}
 	return c_prime;
@@ -549,11 +583,12 @@ Clustering merge_Clustering_Cluster(Graph G, Clustering c, Clustering d, int j)
 
 Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 {
-	Clustering c_prime=c;
+	Clustering c_prime = c;
 	//cout<<"c_prime initial\n";
 	//c_prime.print2();
 	//cout<<endl;
-	for(int i=0;i<k;i++){	
+	for (int i = 0; i < k; i++)
+	{
 		c_prime = merge_Clustering_Cluster(G, c_prime, d, i);
 		//cout<<"c_prime'"<<i<<" \n";
 		//c_prime.print2();
@@ -562,48 +597,77 @@ Clustering merge_Clustering(Graph G, Clustering c, Clustering d)
 	return c_prime;
 }
 
-void pr_conf_mat(vector<int> labels,Clustering D){
+//Function to print the confusion matrix given labels and the clustering.
+
+void pr_conf_mat(vector<int> labels, Clustering D)
+{
 	int cf[k][k];
 	for (int i = 0; i < k; i++)
 		for (int j = 0; j < k; j++)
 			cf[i][j] = 0;
-				
-	for (int i = 0; i <k; i++){
-		for(auto x:D.c[i])
-			if(x.is_doc){
+
+	for (int i = 0; i < k; i++)
+	{
+		for (auto x : D.c[i])
+			if (x.is_doc)
+			{
 				cf[labels[x.num]][i]++;
 			}
 	}
 	cout << "---------------------------------------------------------------------------------" << endl;
-	cout << "Confusion Matrix: " << endl << endl;
-	for (int i = 0; i < k; i++){
-		for (int j = 0; j < k; j++){
-			cout<<cf[i][j]<<" ";
+	cout << "Confusion Matrix: " << endl
+		 << endl;
+	for (int i = 0; i < k; i++)
+	{
+		for (int j = 0; j < k; j++)
+		{
+			cout << cf[i][j] << " ";
 		}
-		cout<<endl;
-	}	
+		cout << endl;
+	}
 }
 
-int main(int argc,char* argv[])
+int main(int argc, char *argv[])
 {
-	string input_f="input.in";
-	string labels_f="labels.in";
-	if(argc>1){
-		input_f=argv[1];
-		labels_f=argv[2];
+	//Files containing the input and true labels.
+	string input_f = "input.in";
+	string labels_f = "labels.in";
+	if (argc > 1)
+	{
+		input_f = argv[1];
+		labels_f = argv[2];
 	}
+	ifstream fin1(labels_f);
+	vector<int> labels;
+	int cur_label;
+	while (fin1 >> cur_label)
+	{
+		labels.push_back(cur_label);
+	}
+	if (labels.size() == 0)
+	{
+		cout << "AARG";
+		exit(0);
+	}
+	fin1.close();
+
 	ifstream fin(input_f);
-	int n_batches,depth;
+	int n_batches, depth;
 	Graph G;
-	cout<<"Enter number of batches:";
-	cin>>n_batches;
-	cout<<"Enter the depth value:";
-	cin>>depth;
 	double t = 0.0;
 	int w, d, num_edges;
 	int total_documents = 0;
+
+	cout << "Enter number of batches:";
+	cin >> n_batches;
+
+	cout << "Enter the depth value:";
+	cin >> depth;
+
 	fin >> w >> d >> k >> num_edges;
 	total_documents += d;
+
+	//Receiving all the edges in the initial graph.
 	for (int i = 0; i < num_edges; i++)
 	{
 		int u, v;
@@ -611,31 +675,16 @@ int main(int argc,char* argv[])
 		fin >> u >> v >> weight;
 		G.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 	}
-	//cout<<"Initial Graph input done"<<endl;
-	//cout<<"size of initial graph is "<<G.get_vlist().size() << endl << endl;
-
-	//cout << words << endl;
-	//exit(0);
 
 	sp_mat a = G.get_word_by_document_matrix();
 	vector<Vertex> order = G.get_order();
-	Row<size_t> assignments = cluster_components(a,k);
-	Clustering C(G, order, assignments);
-	cout << "Clustering of initial graph done..." << endl << endl;
+	Row<size_t> assignments = cluster_components(a, k);
 
-	ifstream fin1(labels_f);
-	vector<int> labels;
-	int cur_label;
-	while(fin1 >> cur_label)
-	{
-		labels.push_back(cur_label);
-	}
-	if(labels.size()==0)
-	{
-		cout<<"AARG";
-		exit(0);
-	}
-	fin1.close();
+	Clustering C(G, order, assignments);
+	cout << "Clustering of initial graph done..." << endl
+		 << endl;
+
+	
 	/*
 		Storing information to the disk.
 	*/
@@ -652,13 +701,11 @@ int main(int argc,char* argv[])
 	C.destroy();
 	ofs2.close();
 
-
 	/*
 		Batch insertion
 	*/
 	for (int b_num = 0; b_num < n_batches; b_num++)
-	{	
-		//Graph, Clustering
+	{
 		int num_ins, num_del, n_edges;
 		Batch B;
 		Graph newG;
@@ -673,22 +720,24 @@ int main(int argc,char* argv[])
 			fin >> u >> is_doc;
 			B.add_v(Vertex(u, is_doc));
 		}
-		
-		for(int i = 0; i < num_del; i++)
+
+		for (int i = 0; i < num_del; i++)
 		{
 			int u, is_doc;
 			fin >> u >> is_doc;
 			B.del_v(Vertex(u, is_doc));
 		}
+
+		//Read the previous graphs and clustering from files.
 		std::ifstream ifs("Graph.txt");
-        boost::archive::text_iarchive ia(ifs);
-        ia >> newG;
+		boost::archive::text_iarchive ia(ifs);
+		ia >> newG;
 
 		std::ifstream ifs2("Clustering.txt");
-        boost::archive::text_iarchive ia2(ifs2);
-        ia2 >> newC;
+		boost::archive::text_iarchive ia2(ifs2);
+		ia2 >> newC;
 		C = newC;
-		if(num_ins > 0)
+		if (num_ins > 0)
 		{
 			for (int i = 0; i < n_edges; i++)
 			{
@@ -698,11 +747,10 @@ int main(int argc,char* argv[])
 				newG.add_Edge(Vertex(u, false), Vertex(v, true), weight);
 			}
 		}
-		//if(b_num==n_batches-1) G.print();
 
 		cout << "Graph size after batch " << b_num + 1 << " : " << newG.get_vlist().size() << endl;
-		set <Vertex> del_vertex;
-		for(auto u: B.get_del_vertices())
+		set<Vertex> del_vertex;
+		for (auto u : B.get_del_vertices())
 			del_vertex.insert(u);
 		Graph G_sub = get_neighbourhood(newG, B, depth, t);
 		C.G.delete_subgraph(del_vertex);
@@ -711,49 +759,31 @@ int main(int argc,char* argv[])
 		vector<Graph> G_list = get_connected_components(G_sub);
 		vector<int> after_del_labels;
 		
-		if(num_del!=0){
-			ifstream fin2("labels"+to_string(b_num+1)+".in");
+		//If the batch deletes elements
+		if (num_del != 0)
+		{
+			ifstream fin2("labels" + to_string(b_num + 1) + ".in");
 			int cur_label;
-			while(fin2>>cur_label)
+			while (fin2 >> cur_label)
 				after_del_labels.push_back(cur_label);
 		}
-		//cout<<"number of components"<<G_list.size()<<endl;
-		//cout << " number of cc: " << G_list.size() << endl;
 
+		//Iterate over all connected components of the neighbourhood.
 		for (int i = 0; i < G_list.size(); i++)
 		{
-			//cout << "Component " << i << endl;
-			//if(b_num==n_batches-1) G_list[i].print();
 			sp_mat b = G_list[i].get_word_by_document_matrix();
-			/*
-			10898 742 0.684
-41 1657 0.178
-			*/
-			/*
-			if(n_batches-1==b_num){
-				cout<<b(10898,742)<<endl;
-				cout<<b(41,1657)<<endl;
-			} 
-			*/
 			vector<Vertex> order1 = G_list[i].get_order();
-			Row<size_t> assignments1 = cluster_components(b,k);
+			Row<size_t> assignments1 = cluster_components(b, k);
 			Clustering D(G_list[i], order1, assignments1);
-			
-			//cout<<C.num_of_vertices()<<endl;
-			//cout<<"D1 size :"<<D.c[0].size()<<" D2 size: "<<D.c[1].size()<<endl;	
-			//D.print2();		
 			C = merge_Clustering(newG, C, D);
-			if(num_del != 0)
-				pr_conf_mat(after_del_labels,C);
+			if (num_del != 0)
+				pr_conf_mat(after_del_labels, C);
 			else
-				pr_conf_mat(labels,C);
-			//C.print2();
-			//exit(0);
+				pr_conf_mat(labels, C);
+
 		}
-		cout << "merged size after " << b_num + 1 << " batch: " << C.num_of_vertices() << endl << endl;
-		//exit(0);
-		//C.compute_nCut();
-		//C.print();
+		cout << "merged size after " << b_num + 1 << " batch: " << C.num_of_vertices() << endl
+			 << endl;
 
 		/*
 			Write back to files.
@@ -769,31 +799,8 @@ int main(int argc,char* argv[])
 		oa2 << C;
 		C.destroy();
 		clustering.close();
-		
 	}
-	//C.print2();
 	fin.close();
+
 	
-	//pr_conf_mat(labels,C);
-	/*
-	int cf[k][k];
-	for (int i = 0; i < k; i++)
-		for (int j = 0; j < k; j++)
-			cf[i][j] = 0;
-	for (int i = 0; i < total_documents; i++)
-	{
-		int cur_label;
-		cur_label=labels[i];
-		cf[cur_label][C.return_label(Vertex(i, true))]++;
-	}
-	cout << "---------------------------------------------------------------------------------" << endl;
-	cout << "Confusion Matrix: " << endl << endl;
-	for (int i = 0; i < k; i++){
-		for (int j = 0; j < k; j++){
-			cout<<cf[i][j]<<" ";
-		}
-		cout<<endl;
-	}
-	fin1.close();
-	*/
 }
