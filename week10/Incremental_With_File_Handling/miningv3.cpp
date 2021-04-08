@@ -132,6 +132,17 @@ public:
 
 	}
 
+	void destroy()
+	{
+		for(auto u: adj_list)
+		{
+			u.second.clear();
+		}
+		adj_list.clear();
+		vlist.clear();
+		order.clear();
+	}
+
 	set<Vertex> get_vlist()
 	{
 		return vlist;
@@ -391,6 +402,17 @@ public:
 	Graph G;
 	Clustering(){}	
 	~Clustering(){}
+
+	void destroy()
+	{
+		for(auto u: c)
+		{
+			u.clear();
+		}
+		c.clear();
+		cut.clear();
+		weight.clear();
+	}
 	// Normalized cut value, weight of cut 0, weight of cut 1
 	Clustering(Graph G, vector<Vertex> vertices, Row<size_t> assignments)
 	{
@@ -621,13 +643,13 @@ int main(int argc,char* argv[])
 	std::ofstream ofs("Graph.txt");
 	boost::archive::text_oarchive oa(ofs);
 	oa << G;
-	//G.~Graph();
+	G.destroy();
 	ofs.close();
 
 	std::ofstream ofs2("Clustering.txt");
 	boost::archive::text_oarchive oa2(ofs2);
 	oa2 << C;
-	//G.~Graph();
+	C.destroy();
 	ofs2.close();
 
 
@@ -739,11 +761,13 @@ int main(int argc,char* argv[])
 		std::ofstream graph("Graph.txt");
 		boost::archive::text_oarchive oa(graph);
 		oa << newG;
+		newG.destroy();
 		graph.close();
 
 		std::ofstream clustering("Clustering.txt");
 		boost::archive::text_oarchive oa2(clustering);
 		oa2 << C;
+		C.destroy();
 		clustering.close();
 		
 	}
