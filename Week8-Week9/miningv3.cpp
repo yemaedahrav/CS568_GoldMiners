@@ -632,7 +632,10 @@ int main(int argc,char* argv[])
 			//cout<<"D1 size :"<<D.c[0].size()<<" D2 size: "<<D.c[1].size()<<endl;	
 			//D.print2();		
 			C = merge_Clustering(G, C, D);
-			pr_conf_mat(after_del_labels,C);
+			if(num_del!=0)
+				pr_conf_mat(after_del_labels,C);
+			else
+				pr_conf_mat(labels,C);
 			//C.print2();
 			//exit(0);
 		}
